@@ -10,7 +10,8 @@
 * 应用安全域名和IP一定要配置，否则无法返回接口数据。
 
 #### 移动接入应用：
-* 登录中开启扫码登录，配置回调域名：“https://pwd.abc.com/resetcheck”,其中pwd.abc.com请按自己实际域名来，并记录相关的appId、appSecret。
+* 登录中开启扫码登录，配置回调域名：“https://pwd.abc.com/resetcheck”
+  其中pwd.abc.com请按自己实际域名来，并记录相关的appId、appSecret。
 
 
 ## 按自己实际的配置修改项目配置参数：
