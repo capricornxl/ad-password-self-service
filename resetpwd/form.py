@@ -3,6 +3,7 @@ from django import forms as c_forms
 from django.core.exceptions import ValidationError
 
 
+# 防止前端注释或去除JS文件进行修改简单密码，在后端再次验证。
 class CheckForm(c_forms.Form):
     new_password = c_fields.RegexField(
         '(?=.*[0-9])(?=.*[a-zA-Z])(?=.*[^a-zA-Z0-9]).{8,30}',
