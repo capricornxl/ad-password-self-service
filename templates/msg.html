@@ -1,0 +1,45 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>密码自助服务</title>
+    <link type="text/css" rel="stylesheet" href="{% static 'css/login.css' %}">
+    <script type="text/javascript" src="{% static 'js/jquery-1.8.3.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/check.js' %}"></script>
+</head>
+<body style="overflow: hidden">
+    <div class="pagewrap">
+        <div class="main">
+            <div class="header"></div>
+            <div class="content">
+                <div class="con_left" >
+                    <div style="margin: 0 auto; width:100%; height: 200px; line-height: 200px;" align="center"  >
+                        <p style="margin: 0 auto; color: #fdfdfe; font-size: 36px; width:100%; ">「域账号/邮箱」
+                            <small>密码自助平台</small></p>
+                    </div>
+                     <div style="margin: 0 auto; width:400px; height: 240px;">
+                        <p style="margin: 0 auto; color: #fdfdfe; font-size: 16px; width:100%;
+">提示：新密码要求满足8至30位长度(不包含空格)，至少包含大小写字母及数字组成。</p>
+                         <p style="margin: 0 auto; color: #fdfdfe; font-size: 16px; width:100%;
+">如果密码己遗忘，可点击[重置/解锁]，使用钉钉扫描验证后直接重置密码。</p>
+                    </div>
+                 </div>
+                <div class="con_right">
+                    <div class="con_r_top">
+                        <p class="right" style="color: rgb(51, 51, 51); border-bottom: 2px solid rgb(46, 85, 142);">提示</p>
+                    </div>
+                    <form name="msg" method="get" action="" autocomplete="off">
+                    <ul>
+                        <li class="con_r_right" style="display: block;">
+                            {% csrf_token %}
+                            <div class="user" style="height: 220px;">
+                            <p style="font-size: 16px;min-height: 1px; padding-left: 0; padding-right: 40px; margin:0">{{ msg }}</p>
+                            </div><br>
+                           <button id="btn_back" style="margin-top: 0" type="button" onclick="{{ button_click }}">{{ button_display }}</button>
+                        </li>
+                    </ul>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body></html>

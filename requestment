@@ -1,0 +1,7 @@
+Django==2.1.8
+dingtalk-sdk>=1.2.2
+pycrypto==2.6
+cryptography
+ldap3
+requests
+uwsgi

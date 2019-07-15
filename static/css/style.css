@@ -1,0 +1,66 @@
+*{margin:0;padding:0;box-sizing:border-box;list-style:none}
+html{height: 100%; width:100%}
+body{font-family:"Microsoft Yahei";min-width:1000px}
+a{outline:0;text-decoration:none}
+strong{font-weight:400}
+.strong{font-weight:700}
+::selection{background:#1EACDF;color:#fff}
+img{border:0}
+::-moz-selection{background:#1EACDF;color:#fff}
+::-webkit-selection{background:#1EACDF;color:#fff}
+.autoWidth{margin:0 auto;min-width:1000px;max-width:1200px}
+.auto{margin:0 auto;min-width:1000px;max-width:1200px}
+@media screen and (max-width:1233px){.auto{padding-left:10px}
+}
+.clearfix:after,.clearfix:before{display:table;line-height:0;content:""}
+.clearfix:after{clear:both}
+.clear-float{clear:both}
+
+
+
+.footer{background-color:#009fd9;font-family:"Microsoft Yahei"}
+.footer-floor1{width:100%;padding:36px 0 60px}
+.footer-list{width:69%;height:100%;float:left}
+.footer-list ul{float:left;margin-right:13%}
+.footer-list .flist-4{margin-right:0}
+.footer-list li{line-height:32px}
+.footer-list li a{color:#b6e2f2;font-size:12px;text-decoration:none}
+.footer-list li a:hover{text-decoration:underline;color:#fff}
+.footer-list .flist-title{font-size:16px;color:#fff;margin-bottom:15px}
+.footer-floor2{width:100%;border-top:1px solid #4cc3ed;padding:20px 0;text-align:center}
+.footer-floor2 p{text-align:center;color:#b6e2f2;font-size:12px;line-height:30px}
+.footer-floor2 p span{font-family:PingFangSC-Light,'helvetica neue','hiragino sans gb',tahoma,'microsoft yahei ui','microsoft yahei',simsun,sans-serif}
+.footer-floor2 a{color:#b6e2f2}
+.footer-floor2 a:hover{color:#a8d0e0;text-decoration:underline}
+.foot-link{margin:0 15px;text-decoration:none;color:#b6e2f2}
+.foot-link:hover{text-decoration:underline}
+.footer-right{width:300px;float:right}
+.official-plat{width:100%;height:100%;margin-top:20px;position:relative}
+.official-plat ul{float:right;margin-top:7px}
+.official-plat ul li{height:45px}
+.official-plat ul a{display:inline-block;height:32px;width:100%;line-height:32px;color:#fff;text-decoration:none;font-size:12px}
+.official-plat>p{display:inline-block;width:132px;height:132px;border:1px solid #ddd;background-color:#fff}
+#wx-corner{border:10px solid transparent;border-left:10px solid #fff;position:absolute;top:12px;right:-20px;z-index:10}
+#wb-corner{border:10px solid transparent;border-left:10px solid #fff;position:absolute;top:58px;right:-20px;z-index:10}
+.five-superiority{width:100%;border-bottom:1px solid #27aede;padding:10px 0 20px}
+.five-superiority-list li{float:left;width:20%;height:36px;text-align:center;border-left:1px solid #27aede}
+.five-superiority-list li:first-child{border-left:none}
+.five-superiority-list li a{display:inline-block;position:relative;width:100%;height:36px;line-height:36px;background:no-repeat 2% center;text-indent:2em;color:#fff;font-size:16px}
+.five-superiority-list li a:hover{color:#bfe7f5}
+.five-superiority-list li a.superiority-text{text-indent:4em}
+.compensate_ico .superiority-icon{background-position:0 0}
+.compensate_ico:hover .superiority-icon{background-position:0 -50px}
+.retreat_ico .superiority-icon{background-position:0 -100px}
+.retreat_ico:hover .superiority-icon{background-position:0 -150px}
+.technology_ico .superiority-icon{background-position:0 -200px}
+.technology_ico:hover .superiority-icon{background-position:0 -250px}
+.prepare_ico .superiority-icon{background-position:0 -300px}
+.prepare_ico:hover .superiority-icon{background-position:0 -350px}
+.service_ico .superiority-icon{background-position:0 -400px}
+.service_ico:hover .superiority-icon{background-position:0 -450px}
+.marquee-box{overflow:hidden;width:100%;position:absolute;left:0;top:0}
+.marquee{width:8000%;height:60px}
+.wave-list-box{float:left}
+.wave-list-box ul{float:left;height:60px;overflow:hidden;zoom:1}
+.wave-list-box ul li{height:60px;width:100%;float:left;line-height:30px;list-style:none}
+.wave-box{position:relative;height:60px;background:#fff}
