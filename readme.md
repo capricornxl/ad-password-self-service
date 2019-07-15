@@ -3,8 +3,9 @@
 ## 代码写得很LOW，有需要的可以直接拿去用。
 
 ## 截图
-![avatar](/pwdselfservice/screenshot/Snipaste_2019-07-15_20-05-49.jpg)
-![avatar](/pwdselfservice/screenshot/Snipaste_2019-07-15_20-06-14.jpg)
+
+![截图1](screenshot/Snipaste_2019-07-15_20-05-49.jpg)
+![截图2](/screenshot/Snipaste_2019-07-15_20-06-14.jpg)
 
 ## 需要的基础环境：
 * Python 3.6.x
