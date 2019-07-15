@@ -1,7 +1,10 @@
 # 初学Django时碰到的一个需求，因为公司中很多员工在修改密码之后，有一些关联的客户端或网页中的旧密码没有更新，导致密码在尝试多次之后账号被锁，为了减少这种让人头疼的重置解锁密码的操蛋工作，自己做了一个自助修改小平台。
 
 ## 代码写得很LOW，有需要的可以直接拿去用。
- 
+
+## 截图
+![avatar](/pwdselfservice/screenshot/Snipaste_2019-07-15_20-05-49.jpg)
+![avatar](/pwdselfservice/screenshot/Snipaste_2019-07-15_20-06-14.jpg)
 
 ## 需要的基础环境：
 * Python 3.6.x
