@@ -5,10 +5,10 @@
 ## 截图
 
 ![截图1](screenshot/Snipaste_2019-07-15_20-05-49.jpg)
-![截图2](/screenshot/Snipaste_2019-07-15_20-06-14.jpg)
+![截图2](screenshot/Snipaste_2019-07-15_20-06-14.jpg)
 
 ## 需要的基础环境：
-* Python 3.6.x
++ Python 3.6.x
 * Nginx(建议)
 * Uwsgi(建议)
 
@@ -26,7 +26,7 @@
 ## 按自己实际的配置修改项目配置参数：
 修改pwdselfservice/local_settings.py中的参数，按自己的实际参数修改
 
-``` python
+```` python
 # AD配置
 AD_HOST = 'abc.com'
 AD_LOGIN_USER = 'abc\pwdadmin'
@@ -58,11 +58,12 @@ TMPID_COOKIE_AGE = 300
 # 主页域名
 HOME_URL = 'https://pwd.abc.com'
 
-```
+````
 
 
 ### 自行安装完python3之后，使用python3目录下的pip3进行安装依赖：
 ### 我自行安装的Python路径为/usr/local/python3
+
 项目目录下的requestment文件里记录了所依赖的相关python模块，安装方法：
 * /usr/local/python3/bin/pip3 install -r requestment
 
@@ -88,7 +89,7 @@ uwsgi-start.sh:
 ```
 
 uwsgi-autoreload.sh:
-```shell
+````shell
 #!/bin/sh
 objectdir="/usr/loca/wwwroot/pwdselfservice"
 
@@ -97,7 +98,9 @@ do
 /bin/touch /usr/loca/wwwroot/pwdselfservice/reload.set
 continue
 done & 
-```
+````
+
+
 脚本内的路径按自己实际情况修改
 
 ## Nginx配置：
@@ -105,7 +108,7 @@ done &
 Nginx Server配置：
 * proxy_pass的IP地址改成自己的服务器IP
 * 配置可自己写一个vhost或直接加在nginx.conf中
-``` nginx
+```` nginx
 server {
     listen  80;
     server_name pwd.abc.com;
@@ -120,8 +123,6 @@ server {
 	access_log  /var/log/nginx/vhost/pwd.log access;
 	error_log   /var/log/nginx/vhost/pwd.err error;
 }
-```
+````
 
 - 执行Nginx reload操作，重新加载配置
-
-
