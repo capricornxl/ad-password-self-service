@@ -73,6 +73,40 @@ HOME_URL = 'https://pwd.abc.com'
 /usr/local/python3/bin/python3 manager.py runserver x.x.x.x:8000
 即可访问正常访问项目
 
+
+## 修改uwsig.ini配置:
+IP和路径按自己实际路径修改
+````ini
+[uwsgi]
+http-socket = 192.168.90.111:8000
+ 
+chdir = /usr/local/wwwroot/pwdselfservice
+ 
+module = pwdselfservice.wsgi:application
+
+master = true
+ 
+processes = 4
+ 
+threads = 4
+ 
+max-requests = 2000
+ 
+chmod-socket = 755
+ 
+vacuum = true
+
+#设置缓冲
+post-buffering = 4096
+
+#设置静态文件
+static-map = /static=/usr/local/wwwroot/pwdselfservice/static
+
+#设置日志目录
+daemonize = /usr/local/wwwroot/log/uwsgi/uwsgi.log
+````
+
+
 ## 通过uwsgi启动：
 /usr/local/python3/bin/uwsgi -d --ini /usr/loca/wwwroot/pwdselfservice/uwsgi.ini
 
