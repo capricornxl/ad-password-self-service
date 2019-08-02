@@ -1,12 +1,12 @@
 from django.shortcuts import render
 from django.http import *
-from .crypto import Crypto
-from .ad import ad_get_user_locked_status_by_mail, ad_unlock_user_by_mail, ad_reset_user_pwd_by_mail, \
+from resetpwd.utils.crypto import Crypto
+from resetpwd.utils.ad import ad_get_user_locked_status_by_mail, ad_unlock_user_by_mail, ad_reset_user_pwd_by_mail, \
     ad_get_user_status_by_mail, ad_ensure_user_by_mail, ad_modify_user_pwd_by_mail
-from .dingding import ding_get_userinfo_detail, ding_get_userid_by_unionid, \
+from resetpwd.utils.dingding import ding_get_userinfo_detail, ding_get_userid_by_unionid, \
     ding_get_persistent_code, ding_get_access_token
 from pwdselfservice.local_settings import *
-from .form import CheckForm
+from resetpwd.utils.form import CheckForm
 import logging
 
 

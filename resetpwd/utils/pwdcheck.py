@@ -2,7 +2,7 @@ from django.shortcuts import render, reverse, HttpResponsePermanentRedirect, red
 from django.http import *
 from django.contrib import messages
 from dingtalk import *
-from .models import *
+from resetpwd.models import *
 from .crypto import Crypto
 from .ad import ad_get_user_locked_status_by_mail, ad_unlock_user_by_mail, ad_reset_user_pwd_by_mail, \
     ad_get_user_status_by_mail, ad_ensure_user_by_mail, ad_modify_user_pwd_by_mail
