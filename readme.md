@@ -57,7 +57,7 @@ DING_APP_SECRET = 'rnGRJhhw5kVmzykG9mrTDxewmI4e0myP1123333221jzeKv3amQYWcInLV3x'
 
 # 钉钉移动应用接入
 DING_SELF_APP_ID = 'dingoabr112233xts'
-DING_SELF_APP_SECRET = 'IrH2MedSgesguFjGvFCTjXYBRZD3322112233332211222
+DING_SELF_APP_SECRET = 'IrH2MedSgesguFjGvFCTjXYBRZD3322112233332211222'
 
 # Crypty key 通过Crypty.generate_key生成
 CRYPTO_KEY = b'dp8U9y7NAhCD3MoNwPzPBhBtTZ1uI_WWSdpNs6wUDgs='
@@ -89,38 +89,40 @@ IP和路径按自己实际路径修改
 ````ini
 [uwsgi]
 http-socket = 192.168.90.111:8000
- 
-chdir = /usr/local/wwwroot/pwdselfservice
- 
+
+# 项目目录
+chdir = /usr/local/wwwroot/ad-password-self-service
+
+# settings.py 里的app wsgi名称
 module = pwdselfservice.wsgi:application
 
 master = true
- 
+
 processes = 4
- 
+
 threads = 4
- 
+
 max-requests = 2000
- 
+
 chmod-socket = 755
- 
+
 vacuum = true
 
-#设置缓冲
+#设置缓冲大小
 post-buffering = 4096
 
-#设置静态文件
-static-map = /static=/usr/local/wwwroot/pwdselfservice/static
+#设置静态文件目录映射
+static-map = /static=/usr/local/wwwroot/ad-password-self-service/static
 
-#设置日志目录
+#设置日志保存目录
 daemonize = /usr/local/wwwroot/log/uwsgi/uwsgi.log
 ````
 
 
 ## 通过uwsgi启动：
-/usr/local/python3/bin/uwsgi -d --ini /usr/loca/wwwroot/pwdselfservice/uwsgi.ini
+/usr/local/python3/bin/uwsgi -d --ini /usr/local/wwwroot/ad-password-self-service/uwsgi.ini
 
-其中/xxx/xxx/pwdselfservice/uwsgi.ini是你自己的服务器中此文件的真实地址
+其中/xxx/xxx/ad-password-self-service/uwsgi.ini是你自己的服务器中此文件的真实地址
 
 启动之后也可以通过IP+端口访问了。
 
@@ -129,17 +131,17 @@ daemonize = /usr/local/wwwroot/log/uwsgi/uwsgi.log
 uwsgi-start.sh:
 ```shell
 #!/bin/sh
-/usr/local/python3/bin/uwsgi -d --ini /usr/loca/wwwroot/pwdselfservice/uwsgi.ini --touch-reload "/usr/loca/wwwroot/pwdselfservice/reload.set"
+/usr/local/python3/bin/uwsgi -d --ini /usr/local/wwwroot/ad-password-self-service/uwsgi.ini --touch-reload "/usr/local/wwwroot/ad-password-self-service/reload.set"
 ```
 
 uwsgi-autoreload.sh:
 ````shell
 #!/bin/sh
-objectdir="/usr/loca/wwwroot/pwdselfservice"
+objectdir="/usr/local/wwwroot/ad-password-self-service"
 
 /usr/bin/inotifywait -mrq --exclude "(logs|\.swp|\.swx|\.log|\.pyc|\.sqlite3)" --timefmt '%d/%m/%y %H:%M' --format '%T %wf' --event modify,delete,move,create,attrib ${objectdir} | while read files
 do
-/bin/touch /usr/loca/wwwroot/pwdselfservice/reload.set
+/bin/touch /usr/local/wwwroot/ad-password-self-service/reload.set
 continue
 done & 
 ````

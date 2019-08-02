@@ -17,7 +17,7 @@ DING_APP_KEY = 'dingqdzmax324v'
 DING_APP_SECRET = 'rnGRJhhw5kVmzykG9mrTDxewmI4e0myPAluMlguYQOaadsf2fhgfdfsx'
 
 # 钉钉移动应用接入
-DING_SELF_APP_ID = 'dingoabrzugusdfdf33fgfds
+DING_SELF_APP_ID = 'dingoabrzugusdfdf33fgfds'
 DING_SELF_APP_SECRET = 'IrH2MedSgesguFjGvFCTjXYBRZDhA5AI4ADQU5710sgLffdsadf32uhgfdsfs'
 
 # Crypty key 通过generate_key生成，可不用修改，如果需要自行生成，请使用Crypto.generate_key自行生成，用于加密页面提交的明文密码

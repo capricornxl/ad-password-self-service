@@ -14,6 +14,7 @@ msg_template = 'msg.html'
 home_url = HOME_URL
 logger = logging.getLogger('django')
 
+
 def resetpwd_index(request):
     home_url = HOME_URL
     app_id = DING_SELF_APP_ID
@@ -24,6 +25,7 @@ def resetpwd_index(request):
 
     if request.method == 'POST':
         check_form = CheckForm(request.POST)
+        # 对前端提交的用户名、密码进行二次验证，防止有人恶意修改前端JS提交简单密码或提交非法用户
         if check_form.is_valid():
             form_obj = check_form.cleaned_data
             user_email = form_obj.get("user_email")
@@ -39,79 +41,55 @@ def resetpwd_index(request):
             }
             return render(request, msg_template, context)
 
-        if user_email and old_password and new_password:
-            try:
-                # 判断账号是否被锁定
-                if ad_get_user_locked_status_by_mail(user_mail_addr=user_email) is not 0:
-                    context = {
-                        'msg': "此账号己被锁定，请先解锁账号。",
-                        'button_click': "window.history.back()",
-                        'button_display': "返回"
-                    }
-                    return render(request, msg_template, context)
-
-                if ad_get_user_status_by_mail(user_mail_addr=user_email) == 514 or ad_get_user_status_by_mail(
-                        user_mail_addr=user_email) == 66050:
-                    context = {
-                        'msg': "此账号状态为己禁用，请联系HR确认账号是否正确。",
-                        'button_click': "window.location.href='%s'" % home_url,
-                        'button_display': "返回主页"
-                    }
-                    return render(request, msg_template, context)
-
-                else:
-                    try:
-                        result = ad_modify_user_pwd_by_mail(user_mail_addr=user_email, old_password=old_password,
-                                                            new_password=new_password)
-                        if result is True:
-                            context = {
-                                'msg': "密码己修改成功，请妥善保管密码。你可直接关闭此页面！",
-                                'button_click': "window.location.href='%s'" % home_url,
-                                'button_display': "返回主页"
-                            }
-                            return render(request, msg_template, context)
-
-                        else:
-                            context = {
-                                'msg': "密码未修改成功，请确认旧密码是否正确。",
-                                'button_click': "window.history.back()",
-                                'button_display': "返回"
-                            }
-                            return render(request, msg_template, context)
-
-                    except IndexError:
-                        context = {
-                            'msg': "请确认邮箱账号[%s]是否正确？未能在Active Directory中检索到相关信息。" % user_email,
-                            'button_click': "window.location.href='%s'" % home_url,
-                            'button_display': "返回主页"
-                        }
-                        return render(request, msg_template, context)
-                    except Exception as e:
-                        context = {
-                            'msg': "出现未预期的错误[%s]，请与管理员联系~" % str(e),
-                            'button_click': "window.location.href='%s'" % home_url,
-                            'button_display': "返回主页"
-                        }
-                        return render(request, msg_template, context)
-
-            except IndexError:
+        try:
+            # 判断账号是否被锁定
+            if ad_get_user_locked_status_by_mail(user_mail_addr=user_email) is not 0:
                 context = {
-                    'msg': "请确认邮箱账号[%s]是否正确？未能在Active Directory中检索到相关信息。" % user_email,
-                    'button_click': "window.location.href='%s'" % home_url,
-                    'button_display': "返回主页"
-                }
-                return render(request, msg_template, context)
-            except Exception as e:
-                context = {
-                    'msg': "出现未预期的错误[%s]，请与管理员联系~" % str(e),
+                    'msg': "此账号己被锁定，请先解锁账号。",
                     'button_click': "window.history.back()",
                     'button_display': "返回"
                 }
                 return render(request, msg_template, context)
 
+            # 判断账号状态是否禁用或锁定
+            if ad_get_user_status_by_mail(user_mail_addr=user_email) == 514 or ad_get_user_status_by_mail(
+                    user_mail_addr=user_email) == 66050:
+                context = {
+                    'msg': "此账号状态为己禁用，请联系HR确认账号是否正确。",
+                    'button_click': "window.location.href='%s'" % home_url,
+                    'button_display': "返回主页"
+                }
+                return render(request, msg_template, context)
+
+        except IndexError:
+            context = {
+                'msg': "请确认邮箱账号[%s]是否正确？未能在Active Directory中检索到相关信息。" % user_email,
+                'button_click': "window.location.href='%s'" % home_url,
+                'button_display': "返回主页"
+            }
+            return render(request, msg_template, context)
+        except Exception as e:
+            context = {
+                'msg': "出现未预期的错误[%s]，请与管理员联系~" % str(e),
+                'button_click': "window.history.back()",
+                'button_display': "返回"
+            }
+            return render(request, msg_template, context)
+
+        # 修改密码
+        result = ad_modify_user_pwd_by_mail(user_mail_addr=user_email, old_password=old_password,
+                                            new_password=new_password)
+        if result is True:
+            context = {
+                'msg': "密码己修改成功，请妥善保管密码。你可直接关闭此页面！",
+                'button_click': "window.location.href='%s'" % home_url,
+                'button_display': "返回主页"
+            }
+            return render(request, msg_template, context)
+
         else:
             context = {
-                'msg': "用户名、旧密码、新密码参数不正确，请重新确认后输入。",
+                'msg': "密码未修改成功，请确认旧密码是否正确。",
                 'button_click': "window.history.back()",
                 'button_display': "返回"
             }
@@ -143,33 +121,33 @@ def resetpwd_check_userinfo(request):
                 'button_display': "返回主页"
             }
             return render(request, msg_template, context)
-        else:
-            ding_user_info = ding_get_userinfo_detail(ding_get_userid_by_unionid(unionid))
-            try:
-                # 钉钉中此账号是否可用
-                if ding_user_info['active']:
-                    crypto = Crypto(CRYPTO_KEY)
-                    unionid_cryto = crypto.encrypt(unionid)
-                    # 配置cookie，并重定向到重置密码页面。
-                    set_cookie = HttpResponseRedirect('resetpwd')
-                    set_cookie.set_cookie('tmpid', unionid_cryto, expires=TMPID_COOKIE_AGE)
-                    return set_cookie
-                else:
-                    context = {
-                        'msg': '邮箱是[%s]的用户在钉钉中未激活或可能己离职' % ding_user_info['email'],
-                        'button_click': "window.location.href='%s'" % home_url,
-                        'button_display': "返回主页"
-                    }
-                    return render(request, msg_template, context)
-            except IndexError:
+
+        ding_user_info = ding_get_userinfo_detail(ding_get_userid_by_unionid(unionid))
+        try:
+            # 钉钉中此账号是否可用
+            if ding_user_info['active']:
+                crypto = Crypto(CRYPTO_KEY)
+                unionid_cryto = crypto.encrypt(unionid)
+                # 配置cookie，并重定向到重置密码页面。
+                set_cookie = HttpResponseRedirect('resetpwd')
+                set_cookie.set_cookie('tmpid', unionid_cryto, expires=TMPID_COOKIE_AGE)
+                return set_cookie
+            else:
                 context = {
-                    'msg': "用户不存在或己离职",
+                    'msg': '邮箱是[%s]的用户在钉钉中未激活或可能己离职' % ding_user_info['email'],
                     'button_click': "window.location.href='%s'" % home_url,
                     'button_display': "返回主页"
-                    }
+                }
                 return render(request, msg_template, context)
-            except Exception as e:
-                logger.error('[异常] ：%s' % str(e))
+        except IndexError:
+            context = {
+                'msg': "用户不存在或己离职",
+                'button_click': "window.location.href='%s'" % home_url,
+                'button_display': "返回主页"
+                }
+            return render(request, msg_template, context)
+        except Exception as e:
+            logger.error('[异常] ：%s' % str(e))
 
     except KeyError:
         context = {
@@ -250,39 +228,39 @@ def resetpwd_reset(request):
                 'button_display': "返回主页"
             }
             return render(request, msg_template, context)
-        else:
-            try:
-                result = ad_reset_user_pwd_by_mail(user_mail_addr=user_email, new_password=new_password)
-                if result:
-                    # 重置密码并执行一次解锁，防止重置后账号还是锁定状态。
-                    ad_unlock_user_by_mail(user_email)
-                    context = {
-                        'msg': "密码己重置成功，请妥善保管。你可以点击返回主页或直接关闭此页面！",
-                        'button_click': "window.location.href='%s'" % home_url,
-                        'button_display': "返回主页"
-                    }
-                    return render(request, msg_template, context)
-                else:
-                    context = {
-                        'msg': "密码未重置成功，确认密码是否满足AD的复杂性要求。",
-                        'button_click': "window.location.href='%s'" % home_url,
-                        'button_display': "返回主页"
-                    }
-                    return render(request, msg_template, context)
-            except IndexError:
+
+        try:
+            result = ad_reset_user_pwd_by_mail(user_mail_addr=user_email, new_password=new_password)
+            if result:
+                # 重置密码并执行一次解锁，防止重置后账号还是锁定状态。
+                ad_unlock_user_by_mail(user_email)
                 context = {
-                    'msg': "请确认邮箱账号[%s]是否正确？未能在AD中检索到相关信息。" % user_email,
+                    'msg': "密码己重置成功，请妥善保管。你可以点击返回主页或直接关闭此页面！",
                     'button_click': "window.location.href='%s'" % home_url,
                     'button_display': "返回主页"
                 }
                 return render(request, msg_template, context)
-            except Exception as e:
+            else:
                 context = {
-                    'msg': "出现未预期的错误[%s]，请与管理员联系~" % str(e),
+                    'msg': "密码未重置成功，确认密码是否满足AD的复杂性要求。",
                     'button_click': "window.location.href='%s'" % home_url,
                     'button_display': "返回主页"
                 }
                 return render(request, msg_template, context)
+        except IndexError:
+            context = {
+                'msg': "请确认邮箱账号[%s]是否正确？未能在AD中检索到相关信息。" % user_email,
+                'button_click': "window.location.href='%s'" % home_url,
+                'button_display': "返回主页"
+            }
+            return render(request, msg_template, context)
+        except Exception as e:
+            context = {
+                'msg': "出现未预期的错误[%s]，请与管理员联系~" % str(e),
+                'button_click': "window.location.href='%s'" % home_url,
+                'button_display': "返回主页"
+            }
+            return render(request, msg_template, context)
     else:
         context = {
             'msg': "请从主页开始进行操作。",
@@ -330,37 +308,37 @@ def resetpwd_unlock(request):
                 'button_display': "返回主页"
             }
             return render(request, msg_template, context)
-        else:
-            try:
-                result = ad_unlock_user_by_mail(user_email)
-                if result:
-                    context = {
-                        'msg': "账号己解锁成功。你可以点击返回主页或直接关闭此页面！",
-                        'button_click': "window.location.href='%s'" % home_url,
-                        'button_display': "返回主页"
-                    }
-                    return render(request, msg_template, context)
-                else:
-                    context = {
-                        'msg': "账号未能解锁，请联系管理员确认该账号在AD的是否己禁用。",
-                        'button_click': "window.location.href='%s'" % home_url,
-                        'button_display': "返回主页"
-                    }
-                    return render(request, msg_template, context)
-            except IndexError:
+
+        try:
+            result = ad_unlock_user_by_mail(user_email)
+            if result:
                 context = {
-                    'msg': "请确认邮箱账号[%s]是否正确？未能在AD中检索到相关信息。" % user_email,
+                    'msg': "账号己解锁成功。你可以点击返回主页或直接关闭此页面！",
                     'button_click': "window.location.href='%s'" % home_url,
                     'button_display': "返回主页"
                 }
                 return render(request, msg_template, context)
-            except Exception as e:
+            else:
                 context = {
-                    'msg': "出现未预期的错误[%s]，请与管理员联系~" % str(e),
+                    'msg': "账号未能解锁，请联系管理员确认该账号在AD的是否己禁用。",
                     'button_click': "window.location.href='%s'" % home_url,
                     'button_display': "返回主页"
                 }
                 return render(request, msg_template, context)
+        except IndexError:
+            context = {
+                'msg': "请确认邮箱账号[%s]是否正确？未能在AD中检索到相关信息。" % user_email,
+                'button_click': "window.location.href='%s'" % home_url,
+                'button_display': "返回主页"
+            }
+            return render(request, msg_template, context)
+        except Exception as e:
+            context = {
+                'msg': "出现未预期的错误[%s]，请与管理员联系~" % str(e),
+                'button_click': "window.location.href='%s'" % home_url,
+                'button_display': "返回主页"
+            }
+            return render(request, msg_template, context)
     else:
         context = {
             'msg': "请从主页开始进行操作。",
