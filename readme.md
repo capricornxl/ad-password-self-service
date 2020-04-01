@@ -16,10 +16,10 @@
 ![截图1](screenshot/Snipaste_2019-07-15_20-05-49.jpg)
 ![截图2](screenshot/Snipaste_2019-07-15_20-06-14.jpg)
 
-## 需要的基础环境：
+## 线上环境需要的基础环境：
 + Python 3.6.x
-* Nginx(建议)
-* Uwsgi(建议)
+* Nginx
+* Uwsgi
 
 ## 钉钉必要条件：
 #### E应用配置
@@ -32,7 +32,7 @@
   其中pwd.abc.com请按自己实际域名来，并记录相关的appId、appSecret。
 
 
-# 使用脚本自动快速部署
+# 使用脚本自动快速部署，只适合Centos，其它发行版本的Linux请自行修改相关命令。
 ## 我添加了一个快速自动部署脚本，可快速自动部署完成当前项目上线。
 把整个项目目录上传到新的服务器上
 ```shell
@@ -145,43 +145,40 @@ HOME_URL = 'PWD_SELF_SERVICE_DOMAIN'
 
 安装完依赖后，直接执行
 /usr/local/python3/bin/python3 manager.py runserver x.x.x.x:8000
-即可访问正常访问项目
+即可临时访问项目，线上不适用这种方法，线上环境请使用uwsgi。
 
 
 ## 修改uwsig.ini配置:
 IP和路径按自己实际路径修改
 ````ini
 [uwsgi]
-http-socket = 192.168.90.111:8000
+http-socket = PWD_SELF_SERVICE_IP:PWD_SELF_SERVICE_PORT
 
-# 项目目录
-chdir = /usr/local/wwwroot/ad-password-self-service
-
-# settings.py 里的app wsgi名称
+chdir = PWD_SELF_SERVICE_HOME
+ 
 module = pwdselfservice.wsgi:application
 
 master = true
-
+ 
 processes = 4
-
+ 
 threads = 4
-
+ 
 max-requests = 2000
-
+ 
 chmod-socket = 755
-
+ 
 vacuum = true
 
-#设置缓冲大小
+#设置缓冲
 post-buffering = 4096
 
-#设置静态文件目录映射
-static-map = /static=/usr/local/wwwroot/ad-password-self-service/static
+#设置静态文件
+static-map = /static=PWD_SELF_SERVICE_HOME/static
 
-#设置日志保存目录
-daemonize = /usr/local/wwwroot/log/uwsgi/uwsgi.log
+#设置日志目录
+daemonize = PWD_SELF_SERVICE_HOME/log/uwsgi.log
 ````
-
 
 ## 通过uwsgiserver启动：
 其中PWD_SELF_SERVICE_HOME是你自己的服务器当前项目的目录，请自行修改
