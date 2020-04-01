@@ -4,6 +4,10 @@ from pwdselfservice.local_settings import *
 
 
 def ding_get_access_token():
+    """
+    获取钉钉access token
+    :return:
+    """
     resp = requests.get(
         url=DING_URL + "/gettoken",
         params=dict(appid=DING_SELF_APP_ID, appsecret=DING_SELF_APP_SECRET)
@@ -16,6 +20,10 @@ def ding_get_access_token():
 
 
 def ding_get_persistent_code(code, token):
+    """
+    获取钉钉当前用户的unionid
+    :return:
+    """
     resp = requests.post(
         url="%s/get_persistent_code?access_token=%s" % (DING_URL, token),
         json=dict(tmp_auth_code=code),
@@ -28,11 +36,20 @@ def ding_get_persistent_code(code, token):
 
 
 def ding_client_connect():
+    """
+    钉钉连接器
+    :return:
+    """
     client = AppKeyClient(corp_id=DING_CORP_ID, app_key=DING_APP_KEY, app_secret=DING_APP_SECRET)
     return client
 
 
 def ding_get_dept_user_list_detail(dept_id, offset, size):
+    """
+    获取部门中的用户列表详细清单
+    :param code:
+    :return:
+    """
     client = ding_client_connect()
     result = client.user.list(department_id=dept_id, offset=offset, size=size)
     return result

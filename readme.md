@@ -1,10 +1,9 @@
-# 初学Django时碰到的一个需求，因为公司中很多员工在修改密码之后，有一些关联的客户端或网页中的旧密码没有更新，导致密码在尝试多次之后账号被锁，为了减少这种让人头疼的重置解锁密码的操蛋工作，自己做了一个自助修改小平台。
-
-## 代码写得很LOW，有需要的可以直接拿去用。
+# 初学Django时碰到的一个需求，因为公司中很多员工在修改密码之后，有一些关联的客户端或网页中的旧密码没有更新，导致密码在尝试多次之后账号被锁，为了减少这种让人头疼的重置解锁密码的操蛋工作，自己做了一个自助修改小平台。  
+## 水平有限，代码写得不好，但是能用，有需要的可以直接拿去用。
 #### 场景说明：
-因为本公司AD是早期已经在用，用户的个人信息不是十分全面，例如:用户手机号。
-钉钉是后来才开始使用，钉钉默认是使用手机号登录。
-这样就造成如果通过手机号来进行钉钉与AD之间的验证视乎行不通。
+因为本公司AD是早期已经在用，用户的个人信息不是十分全面，例如:用户手机号。  
+钉钉是后来才开始使用，钉钉默认是使用手机号登录。  
+这样就造成如果通过手机号来进行钉钉与AD之间的验证视乎行不通。  
 在这里我就使用了通过扫码后，提取钉钉账号的邮箱信息，再将邮箱在AD中进行比对来验证用户(邮箱)是否同时在企业的钉钉和企业AD中同时存在，并账号状态是激活的。
 
 此处的配置可按自己的实际情况修改。
@@ -33,40 +32,105 @@
   其中pwd.abc.com请按自己实际域名来，并记录相关的appId、appSecret。
 
 
+# 使用脚本自动快速部署
+## 我添加了一个快速自动部署脚本，可快速自动部署完成当前项目上线。
+把整个项目目录上传到新的服务器上
+```shell
+chmod +x auto-install.sh
+./auto-install.sh
+```
+等待所以安装完成即可。
+
+#### 按自己实际的配置修改项目配置参数：
+修改pwdselfservice/local_settings.py中的参数，按自己的实际参数修改
+```` python
+# AD配置
+# AD主机，可以是IP或主机域名，例如可以是:abc.com或172.16.122.1
+AD_HOST = '修改为自己的'
+
+# 用于登录AD做用户信息验证的账号， 需要有修改用户账号密码的权限。
+# 账号格式使用DOMAIN\USERNAME，例如：abc\pwdadmin
+AD_LOGIN_USER = '修改为自己的'
+
+# 密码
+AD_LOGIN_USER_PWD = '修改为自己的'
+
+# BASE DN，账号的查找DN路径，例如：'DC=abc,DC=com'，可以指定到OU之下，例如：'OU=RD,DC=abc,DC=com'。
+BASE_DN = '修改为自己的'
+
+# 钉钉配置
+# 钉钉接口地址，不可修改
+DING_URL = "https://oapi.dingtalk.com/sns"
+
+# 钉钉企业ID
+DING_CORP_ID = '修改为自己的'
+
+# 钉钉E应用
+DING_AGENT_ID = '修改为自己的'
+DING_APP_KEY = '修改为自己的'
+DING_APP_SECRET = '修改为自己的'
+
+# 钉钉移动应用接入
+DING_SELF_APP_ID = '修改为自己的'
+DING_SELF_APP_SECRET = '修改为自己的'
+
+# Crypty key 通过generate_key生成，可不用修改
+CRYPTO_KEY = b'dp8U9y7NAhCD3MoNwPzPBhBtTZ1uI_WWSdpNs6wUDgs='
+
+# COOKIE 超时单位是秒，可不用修改
+TMPID_COOKIE_AGE = 300
+
+# 主页域名，index.html中的钉钉跳转等需要指定域名，如果是脚本自动部署，以下域名会自动替换。
+HOME_URL = 'PWD_SELF_SERVICE_DOMAIN'
+
+````
+
+
+# 手动部署
+
 ## 按自己实际的配置修改项目配置参数：
 修改pwdselfservice/local_settings.py中的参数，按自己的实际参数修改
 
 ```` python
-# AD配置
-AD_HOST = 'abc.com'
-AD_LOGIN_USER = 'abc\pwdadmin'
-AD_LOGIN_USER_PWD = 'gVykWgNNF0oBQzwmwPp8'
-BASE_DN = 'OU=rd,DC=abc,DC=com'
+# AD配置，修改为自己的
+# AD主机，可以是IP或主机域名，例如可以是:abc.com或172.16.122.1
+AD_HOST = '修改为自己的'
+
+# 用于登录AD做用户信息验证的账号， 需要有修改用户账号密码的权限。
+# 账号格式使用DOMAIN\USERNAME，例如：abc\pwdadmin
+AD_LOGIN_USER = '修改为自己的'
+
+# 密码
+AD_LOGIN_USER_PWD = '修改为自己的'
+
+# BASE DN，账号的查找DN路径，例如：'DC=abc,DC=com'，可以指定到OU之下，例如：'OU=RD,DC=abc,DC=com'。
+BASE_DN = '修改为自己的'
 
 # 钉钉配置
-# 钉钉统一接口地址，不可修改
+# 钉钉接口地址，不可修改
 DING_URL = "https://oapi.dingtalk.com/sns"
 
-# 钉钉企业ID
-DING_CORP_ID = 'ding01769028f06d321'
+# 钉钉企业ID，修改为自己的
+DING_CORP_ID = '修改为自己的'
 
-# 钉钉E应用
-DING_AGENT_ID = '25304321'
-DING_APP_KEY = 'dingqdzmn611l5321321'
-DING_APP_SECRET = 'rnGRJhhw5kVmzykG9mrTDxewmI4e0myP1123333221jzeKv3amQYWcInLV3x'
+# 钉钉E应用，修改为自己的
+DING_AGENT_ID = '修改为自己的'
+DING_APP_KEY = '修改为自己的'
+DING_APP_SECRET = '修改为自己的'
 
-# 钉钉移动应用接入
-DING_SELF_APP_ID = 'dingoabr112233xts'
-DING_SELF_APP_SECRET = 'IrH2MedSgesguFjGvFCTjXYBRZD3322112233332211222'
+# 钉钉移动应用接入，修改为自己的
+DING_SELF_APP_ID = '修改为自己的'
+DING_SELF_APP_SECRET = '修改为自己的'
 
-# Crypty key 通过Crypty.generate_key生成
+# Crypty key 通过generate_key生成，可不用修改
 CRYPTO_KEY = b'dp8U9y7NAhCD3MoNwPzPBhBtTZ1uI_WWSdpNs6wUDgs='
 
-# COOKIE 超时
+# COOKIE 超时单位是秒，可不用修改
 TMPID_COOKIE_AGE = 300
 
-# 主页域名
-HOME_URL = 'https://pwd.abc.com'
+
+# 主页域名，index.html中的钉钉跳转等需要指定域名。
+HOME_URL = 'PWD_SELF_SERVICE_DOMAIN'
 
 ````
 
@@ -119,32 +183,58 @@ daemonize = /usr/local/wwwroot/log/uwsgi/uwsgi.log
 ````
 
 
-## 通过uwsgi启动：
-/usr/local/python3/bin/uwsgi -d --ini /usr/local/wwwroot/ad-password-self-service/uwsgi.ini
-
-其中/xxx/xxx/ad-password-self-service/uwsgi.ini是你自己的服务器中此文件的真实地址
-
-启动之后也可以通过IP+端口访问了。
-
-提供2个脚本，让uwsgi在修改文件时能自动重载：
-
-uwsgi-start.sh:
+## 通过uwsgiserver启动：
+其中PWD_SELF_SERVICE_HOME是你自己的服务器当前项目的目录，请自行修改
+将以下脚本修改完之后，复制到/etc/init.d/，给予执行权限。
+uwsgiserver:
 ```shell
 #!/bin/sh
-/usr/local/python3/bin/uwsgi -d --ini /usr/local/wwwroot/ad-password-self-service/uwsgi.ini --touch-reload "/usr/local/wwwroot/ad-password-self-service/reload.set"
-```
 
-uwsgi-autoreload.sh:
-````shell
-#!/bin/sh
-objectdir="/usr/local/wwwroot/ad-password-self-service"
+INI="PWD_SELF_SERVICE_HOME/uwsgi.ini"
+UWSGI="/usr/share/python-3.6.9/bin/uwsgi"
+PSID=`ps aux | grep "uwsgi"| grep -v "grep" | wc -l`
 
-/usr/bin/inotifywait -mrq --exclude "(logs|\.swp|\.swx|\.log|\.pyc|\.sqlite3)" --timefmt '%d/%m/%y %H:%M' --format '%T %wf' --event modify,delete,move,create,attrib ${objectdir} | while read files
-do
-/bin/touch /usr/local/wwwroot/ad-password-self-service/reload.set
-continue
-done & 
+if [ ! -n "$1" ]
+then
+    content="Usages: sh uwsgiserver [start|stop|restart]"
+    echo -e "\033[31m $content \033[0m"
+    exit 0
+fi
+
+if [ $1 = start ]
+then
+    if [ `eval $PSID` -gt 4 ]
+    then
+        content="uwsgi is running!"
+        echo -e "\033[32m $content \033[0m"
+        exit 0
+    else
+        $UWSGI $INI
+        content="Start uwsgi service [OK]"
+        echo -e "\033[32m $content \033[0m"
+    fi
+
+elif [ $1 = stop ];then
+    if [ `eval $PSID` -gt 4 ];then
+        killall -9 uwsgi
+    fi
+    content="Stop uwsgi service [OK]"
+    echo -e "\033[32m $content \033[0m"
+elif [ $1 = restart ];then
+    if [ `eval $PSID` -gt 4 ];then
+        killall -9 uwsgi
+    fi
+    $UWSGI --ini $INI
+    content="Restart uwsgi service [OK]"
+    echo -e "\033[32m $content \033[0m"
+
+else
+    content="Usages: sh uwsgiserver [start|stop|restart]"
+    echo -e "\033[31m $content \033[0m"
+fi
+
 ````
+
 
 
 脚本内的路径按自己实际情况修改
@@ -164,10 +254,9 @@ server {
         proxy_set_header   Host              $host;
         proxy_set_header   X-Real-IP         $remote_addr;
         proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
-
+        proxy_set_header   X-Forwarded-Proto $scheme;
     }
-	access_log  /var/log/nginx/vhost/pwd.log access;
-	error_log   /var/log/nginx/vhost/pwd.err error;
+	access_log  off;
 }
 ````
 

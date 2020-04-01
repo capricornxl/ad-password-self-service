@@ -63,7 +63,6 @@
                                     var home_url = "{{ home_url }}";
                                     // 钉钉移动应用接入ID
                                     var appid = "{{ app_id }}";
-                                    // 钉钉回调域名
                                     var url = encodeURIComponent(home_url + '/resetcheck');
                                     var goto = encodeURIComponent('https://oapi.dingtalk.com/connect/oauth2/sns_authorize?appid=' + appid + '&response_type=code&scope=snsapi_login&state=STATE&redirect_uri=' + url);
                                     var obj = DDLogin({
@@ -105,8 +104,7 @@
 <script type="text/javascript">
 window.onload=function() {
 if (!!window.ActiveXObject || "ActiveXObject" in window)
-  alert("您当前使用的浏览器为IE或IE内核，因为IE各种体验问题，本网站不对IE兼容。\n为能正常使用密码自助修改服务，请更换谷歌、火狐等非IE核心的浏览器。\n如果是360、Maxthon" +
-      "等这类双核心浏览器，请切换至[极速模式]亦可。")
+  alert("您当前使用的浏览器为IE或IE内核，因为IE各种体验问题，本网站不对IE兼容。\n为能正常使用密码自助修改服务，请更换谷歌、火狐等非IE核心的浏览器。\n如果是360、Maxthon等这类双核心浏览器，请切换至[极速模式]亦可。")
 }
 </script>
 </body></html>
