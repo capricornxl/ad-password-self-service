@@ -39,9 +39,9 @@
 chmod +x auto-install.sh
 ./auto-install.sh
 ```
-等待所以安装完成即可。
+等待所有安装完成
 
-#### 按自己实际的配置修改项目配置参数：
+#### 脚本安装完成之后，按自己实际的配置修改项目配置文件：
 修改pwdselfservice/local_settings.py中的参数，按自己的实际参数修改
 ```` python
 # AD配置
@@ -84,9 +84,12 @@ TMPID_COOKIE_AGE = 300
 HOME_URL = 'PWD_SELF_SERVICE_DOMAIN'
 
 ````
+### 以上配置修改完成之后，则可以通过配置的域名直接访问。  
 
-
-# 手动部署
+    
+    
+    
+# 手动部署 
 
 ## 按自己实际的配置修改项目配置参数：
 修改pwdselfservice/local_settings.py中的参数，按自己的实际参数修改
@@ -140,7 +143,6 @@ HOME_URL = 'PWD_SELF_SERVICE_DOMAIN'
 
 项目目录下的requestment文件里记录了所依赖的相关python模块，安装方法：
 * /usr/local/python3/bin/pip3 install -r requestment
-
 等待所有模块安装完成之后进行下一步。
 
 安装完依赖后，直接执行
@@ -231,13 +233,10 @@ else
 fi
 
 ````
-
-
-
 脚本内的路径按自己实际情况修改
 
-## Nginx配置：
-
+## 自行部署Nginx，然后添加Nginx配置
+#### Nginx配置：
 Nginx Server配置：
 * proxy_pass的IP地址改成自己的服务器IP
 * 配置可自己写一个vhost或直接加在nginx.conf中
@@ -256,5 +255,4 @@ server {
 	access_log  off;
 }
 ````
-
 - 执行Nginx reload操作，重新加载配置
