@@ -10,6 +10,24 @@
 
 整个验证逻辑写在resetpwd/views.py
 
+提示：
+如果使用中提示无法连接到域控，可以修改下resetpwd\utils\ad.py文件：
+```python
+def __ad_connect():
+    """
+    AD连接器
+    :return:
+    """
+    username = str(AD_LOGIN_USER).lower()
+    server = Server(host=AD_HOST, use_ssl=True, port=636, get_info='ALL')
+    try:
+        conn = Connection(server, auto_bind=True, user=username, password=AD_LOGIN_USER_PWD, authentication='NTLM')
+        return conn
+    except Exception:
+        raise Exception('Server Error. Could not connect to Domain Controller')
+```
+
+把上面代码中的use_ssl=True改成use_ssl=False
 
 ## 截图
 
