@@ -28,7 +28,8 @@ DING_APP_SECRET = '修改为自己的'
 DING_SELF_APP_ID = '修改为自己的'
 DING_SELF_APP_SECRET = '修改为自己的'
 
-# Crypty key 通过generate_key生成，可不用修改
+# 执行：python3 ./resetpwd/utils/crypto.py 生成
+# 可自行生成后替换
 CRYPTO_KEY = b'dp8U9y7NAhCD3MoNwPzPBhBtTZ1uI_WWSdpNs6wUDgs='
 
 # COOKIE 超时单位是秒，可不用修改

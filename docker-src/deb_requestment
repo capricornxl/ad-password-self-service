@@ -1,0 +1,23 @@
+# common
+gcc
+cmake
+curl
+wget
+vim
+locales
+iputils-ping
+python3
+nginx
+
+# mysql-client
+default-mysql-client
+default-libmysqlclient-dev
+
+openssl
+libssl-dev
+libldap2-dev
+libsasl2-dev
+libkrb5-dev
+sqlite
+
+sshpass
