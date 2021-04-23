@@ -70,6 +70,8 @@ chmod +x auto-install.sh
 #### 脚本安装完成之后，按自己实际的配置修改项目配置文件：
 修改pwdselfservice/local_settings.py中的参数，按自己的实际参数修改
 ```` python
+修改pwdselfservice/local_settings.py中的参数，按自己的实际参数修改
+```` python
 # AD配置
 # AD主机，可以是IP或主机域名，例如可以是:abc.com或172.16.122.1
 AD_HOST = '修改为自己的'
@@ -108,7 +110,6 @@ TMPID_COOKIE_AGE = 300
 
 # 主页域名，index.html中的钉钉跳转等需要指定域名，如果是脚本自动部署，以下域名会自动替换。
 HOME_URL = 'PWD_SELF_SERVICE_DOMAIN'
-
 ````
 ### 以上配置修改完成之后，则可以通过配置的域名直接访问。  
 
