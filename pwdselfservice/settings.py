@@ -15,15 +15,11 @@ import os
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
-
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'nxnm3#&2tat_c2i6%$y74a)t$(3irh^gpwaleoja1kdv30fmcm'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -35,11 +31,12 @@ if not os.path.isdir(LOG_PATH):
 
 LOGGING = {
     'version': 1,
-    'disable_existing_loggers': False,#此选项开启表示禁用部分日志，不建议设置为True
+    # 此选项开启表示禁用部分日志，不建议设置为True
+    'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
             'format': '%(asctime)s %(levelname)s %(pathname)s %(module)s.%(funcName)s %(lineno)d: %(message)s'
-            #日志格式
+            # 日志格式
         },
         'simple': {
             'format': '%(asctime)s %(levelname)s %(pathname)s %(module)s.%(funcName)s %(lineno)d: %(message)s'
@@ -47,7 +44,8 @@ LOGGING = {
     },
     'filters': {
         'require_debug_true': {
-            '()': 'django.utils.log.RequireDebugTrue',#过滤器，只有当setting的DEBUG = True时生效
+            # 过滤器，只有当setting的DEBUG = True时生效
+            '()': 'django.utils.log.RequireDebugTrue',
         },
     },
     'handlers': {
@@ -57,15 +55,18 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose'
         },
-        'file': {#重点配置部分
+        'file': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': '%s/log.log' % LOG_PATH,#日志保存文件
-            'formatter': 'verbose'#日志格式，与上边的设置对应选择
+            # 日志保存文件
+            'filename': '%s/log.log' % LOG_PATH,
+            # 日志格式，与上边的设置对应选择
+            'formatter': 'verbose'
                 }
     },
     'loggers': {
-        'django': {#日志记录器
+        'django': {
+            # 日志记录器
             'handlers': ['file'],
             'level': 'DEBUG',
             'propagate': True,
@@ -84,8 +85,6 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 # 建议配置，阻止 javascript 对会话数据的访问，提高安全性。
 # SESSION_COOKIE_HTTPONLY= True
 
-
-# Application definition
 
 INSTALLED_APPS = [
     # 'django.contrib.admin',
@@ -140,9 +139,6 @@ WSGI_APPLICATION = 'pwdselfservice.wsgi.application'
 # }
 
 
-# Password validation
-# https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -158,10 +154,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
-# Internationalization
-# https://docs.djangoproject.com/en/2.1/topics/i18n/
-
 LANGUAGE_CODE = 'zh-hans'
 
 TIME_ZONE = 'Asia/Shanghai'
@@ -170,15 +162,10 @@ USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = False
-
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/2.1/howto/static-files/
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+USE_TZ = True
 
 STATIC_URL = '/static/'
-STATIC_ROOT = 'static'
+# STATIC_ROOT = 'static'
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),

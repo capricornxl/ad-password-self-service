@@ -1,11 +1,11 @@
-{% load staticfiles %}
+{% load static %}
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>密码自助服务</title>
     <link type="text/css" rel="stylesheet" href="{% static 'css/login.css' %}">
     <script type="text/javascript" src="{% static 'js/jquery-1.8.3.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/check.js' %}"></script>
-    <script src="//g.alicdn.com/dingding/dinglogin/0.0.5/ddLogin.js"></script>
+    <script src="https://g.alicdn.com/dingding/dinglogin/0.0.5/ddLogin.js"></script>
 </head>
 <body>
     <div class="pagewrap">
@@ -15,8 +15,8 @@
             </div>
             <div class="content">
                 <div class="con_left" >
-                    <div style="margin: 0 auto; width:100%; height: 200px; line-height: 200px;" align="center"  >
-                        <p style="margin: 0 auto; color: #fdfdfe; font-size: 36px; width:100%; ">「域账号/邮箱」<small>密码自助平台</small></p>
+                    <div style="margin: 0 auto; width:100%; height: 200px; line-height: 200px;" align="center">
+                        <p style="margin: 0 auto; color: #fdfdfe; font-size: 36px; width:100%; ">「域账号或邮箱」<small>密码自助平台</small></p>
                     </div>
                      <div style="margin: 0 auto; width:400px; height: 240px;">
                          <p style="margin: 0 auto; color: #fdfdfe; font-size: 16px; width:100%;
@@ -36,7 +36,7 @@
                                {% csrf_token %}
                                 <div class="user">
                                     <div><span class="user-icon"></span>
-                                        <input type="text" id="user_email" name="user_email" placeholder=" 输入邮箱(例如：user@abc.com)" value="">
+                                        <input type="text" id="username" name="username" placeholder="格式：abc\lisi、lisi、lisi@abc.com" value="">
                                     </div>
                                     <div><span class="mima-icon"></span>
                                         <input type="password" id="old_password" name="old_password"
@@ -59,12 +59,16 @@
                             <div style="margin-top: -30px" class="erweima">
                                 <div style="width: 300px; height: 300px; margin: 0 auto" id="ding_code"></div>
                                 <script type="text/javascript">
+                                    // 构造钉钉登录
                                     // 扫描之后需要跳转的域名，填写自己的修改密码的域名地址http或https
                                     var home_url = "{{ home_url }}";
                                     // 钉钉移动应用接入ID
-                                    var appid = "{{ app_id }}";
-                                    var url = encodeURIComponent(home_url + '/resetcheck');
-                                    var goto = encodeURIComponent('https://oapi.dingtalk.com/connect/oauth2/sns_authorize?appid=' + appid + '&response_type=code&scope=snsapi_login&state=STATE&redirect_uri=' + url);
+                                    var app_id = "{{ app_id }}";
+                                    var redirect_url = encodeURIComponent(home_url + '/callbackCheck');
+                                    var goto = encodeURIComponent('https://oapi.dingtalk.com/connect/qrconnect?appid='
+                                        + app_id
+                                        + '&response_type=code&scope=snsapi_login&state=STATE&redirect_uri='
+                                        + redirect_url);
                                     var obj = DDLogin({
                                         id: "ding_code",
                                         goto: goto,
@@ -73,15 +77,20 @@
                                         height: "300"
                                     });
                                     // 获取loginTmpCode
-                                    const hanndleMessage = function (event) {
-                                        let origin = event.origin;
+                                    var hanndleMessage = function (event) {
+                                        var origin = event.origin;
                                         console.log("origin", event.origin)
                                         //判断是否来自ddLogin扫码事件。
                                         if (origin === "https://login.dingtalk.com") {
-                                            let loginTmpCode = event.data;
+                                            var loginTmpCode = event.data;
                                             console.log("loginTmpCode", loginTmpCode);
                                             if (loginTmpCode) {
-                                                location.href = "https://oapi.dingtalk.com/connect/oauth2/sns_authorize?appid=" + appid + "&response_type=code&scope=snsapi_login&state=STATE&redirect_uri=" + url + "&loginTmpCode=" + loginTmpCode;
+                                                //拿到loginTmpCode后就可以在这里构造跳转链接进行跳转了
+                                                location.href = 'https://oapi.dingtalk.com/connect/oauth2/sns_authorize?appid='
+                                                    + app_id
+                                                    + '&response_type=code&scope=snsapi_login&state=STATE&redirect_uri='
+                                                    + redirect_url
+                                                    + '&loginTmpCode=' + loginTmpCode;
                                             }
                                         }
                                     };

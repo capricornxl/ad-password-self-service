@@ -22,13 +22,14 @@
         // (?=.*[0-9])(?=.*[a-zA-Z]).{8,30}   大小写字母+数字
         regex_mail = new RegExp('^\\w+((-\\w+)|(\\.\\w+))*\\@[A-Za-z0-9]+((\\.|-)[A-Za-z0-9]+)*\\.[A-Za-z0-9]+$')
         regex_pwd = new RegExp('(?=.*[0-9])(?=.*[a-zA-Z])(?=.*[^a-zA-Z0-9]).{8,30}');
-        if ($.trim($('#user_email').val()) === '') {
-            alert('请输入邮箱账号');
-            return false;
-        } else if (!regex_mail.test($.trim($('#user_email').val()))) {
-            alert('请输入正确的邮箱账号。\n');
-            return false;
-        } else if ($.trim($('#old_password').val()) === '') {
+        //if ($.trim($('#user_email').val()) === '') {
+        //    alert('请输入邮箱账号');
+        //    return false;
+        //} else if (!regex_mail.test($.trim($('#user_email').val()))) {
+        //    alert('请输入正确的邮箱账号。\n');
+        //    return false;
+        //} else
+        if ($.trim($('#old_password').val()) === '') {
             alert('请输入旧密码');
             return false;
         } else if ($.trim($('#new_password').val()) === '') {
@@ -57,13 +58,14 @@
     $('#btn_reset').click(function () {
         let regex_mail = new RegExp('^\\w+((-\\w+)|(\\.\\w+))*\\@[A-Za-z0-9]+((\\.|-)[A-Za-z0-9]+)*\\.[A-Za-z0-9]+$')
         let regex_pwd = new RegExp('(?=.*[0-9])(?=.*[a-zA-Z])(?=.*[^a-zA-Z0-9]).{8,30}');
-        if ($.trim($('#user_email').val()) === '') {
-            alert('请输入邮箱账号');
-            return false;
-        } else if (!regex_mail.test($.trim($('#user_email').val()))) {
-            alert('请输入正确的邮箱账号。\n');
-            return false;
-        } else if ($.trim($('#new_password').val()) === '') {
+        //if ($.trim($('#user_email').val()) === '') {
+        //alert('请输入邮箱账号');
+        //    return false;
+        //} else if (!regex_mail.test($.trim($('#user_email').val()))) {
+        //    alert('请输入正确的邮箱账号。\n');
+        //    return false;
+        //} else
+        if ($.trim($('#new_password').val()) === '') {
             alert('请输入密码');
             return false;
         } else if ($.trim($('#ensure_password').val()) === '') {

@@ -17,7 +17,7 @@ class CheckForm(c_forms.Form):
     )
     old_password = c_fields.CharField(error_messages={'required': '确认密码不能为空'})
     ensure_password = c_fields.CharField(error_messages={'required': '确认密码不能为空'})
-    user_email = c_fields.CharField(error_messages={'required': '邮箱不能为空', 'invalid': '邮箱格式错误'})
+    username = c_fields.CharField(error_messages={'required': '账号不能为空', 'invalid': '账号格式错误'})
 
     def clean(self):
         pwd0 = self.cleaned_data.get('old_password')

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os
 import sys
+from utils.ad_ops import AdOps
 
 if __name__ == '__main__':
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'pwdselfservice.settings')
@@ -12,4 +13,11 @@ if __name__ == '__main__':
             "available on your PYTHONPATH environment variable? Did you "
             "forget to activate a virtual environment?"
         ) from exc
+
+    try:
+        AdOps()
+    except Exception as e:
+        print(str(e))
+        print("未能连接到AD，先决条件未满足，Django不会运行..")
+        sys.exit(1)
     execute_from_command_line(sys.argv)

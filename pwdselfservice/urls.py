@@ -4,9 +4,9 @@ import resetpwd.views
 
 urlpatterns = {
     path("favicon.ico", RedirectView.as_view(url='static/img/favicon.ico')),
-    path('', resetpwd.views.resetpwd_index, name='index'),
-    path('resetcheck', resetpwd.views.resetpwd_check_userinfo, name='resetcheck'),
-    path('resetpwd', resetpwd.views.resetpwd_reset, name='resetpwd'),
-    path('resetunlock', resetpwd.views.resetpwd_unlock, name='resetunlock'),
-    path('resetmsg', resetpwd.views.reset_msg, name='resetmsg'),
+    path('', resetpwd.views.index, name='index'),
+    path('callbackCheck', resetpwd.views.callback_check, name='callbackCheck'),
+    path('resetPassword', resetpwd.views.reset_pwd_by_ding_callback, name='resetPassword'),
+    path('unlockAccount', resetpwd.views.unlock_account, name='unlockAccount'),
+    path('messages', resetpwd.views.messages, name='messages'),
 }

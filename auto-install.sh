@@ -138,30 +138,31 @@ fi
 
 ##install python3
 ##如果之前用此脚本安装过python3，后续就不会再次安装。
-if [[ -f "/usr/share/python-3.6.9/bin/python3" ]]
+python_ver='3.8.9'
+if [[ -f "/usr/share/python-${python_ver}/bin/python3" ]]
 then
     echo "己发现Python3，将不会安装。"
 else
-    if [[ -f "Python-3.6.9.tar.xz" ]]
+    if [[ -f "Python-${python_ver}.tar.xz" ]]
     then
-        echo "将安装Python3.6.9"
-        tar xf Python-3.6.9.tar.xz
-        cd Python-3.6.9
-        sudo ./configure --prefix=/usr/share/python-3.6.9 && make && make install
+        echo "将安装Python${python_ver}"
+        tar xf Python-${python_ver}.tar.xz
+        cd Python-${python_ver}
+        sudo ./configure --prefix=/usr/share/python-${python_ver} && make && make install
     else
-        echo "脚本目录下没有发现Python3.6.9.tar.xz，将会下载python 3.6.9"
-        sudo wget https://www.python.org/ftp/python/3.6.9/Python-3.6.9.tar.xz
-        tar xf Python-3.6.9.tar.xz
-        cd Python-3.6.9
-        sudo ./configure --prefix=/usr/share/python-3.6.9 && make && make install
+        echo "脚本目录下没有发现Python${python_ver}.tar.xz，将会下载python ${python_ver}"
+        sudo wget https://www.python.org/ftp/python/${python_ver}/Python-${python_ver}.tar.xz
+        tar xf Python-${python_ver}.tar.xz
+        cd Python-${python_ver}
+        sudo ./configure --prefix=/usr/share/python-${python_ver} && make && make install
     fi
 
     if [[ $? -eq 0 ]]
     then
       echo "创建python3和pip3的软件链接"
       cd ${SHELL_FOLDER}
-      sudo ln -svf /usr/share/python-3.6.9/bin/python3 /usr/bin/python3
-      sudo ln -svf /usr/share/python-3.6.9/bin/pip3 /usr/bin/pip3
+      sudo ln -svf /usr/share/python-${python_ver}/bin/python3 /usr/bin/python3
+      sudo ln -svf /usr/share/python-${python_ver}/bin/pip3 /usr/bin/pip3
       echo "======================================================================="
       echo "Python3 安装成功！"
       echo "======================================================================="
