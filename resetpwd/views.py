@@ -13,8 +13,16 @@ from .form import CheckForm
 msg_template = 'messages.html'
 logger = logging.getLogger('django')
 
-ad_ops = AdOps()
-ding_ops = DingDingOps()
+try:
+    ad_ops = AdOps()
+except Exception as e:
+    print(e)
+    pass
+try:
+    ding_ops = DingDingOps()
+except Exception as e:
+    print(e)
+    sys.exit(1)
 
 
 def index(request):
