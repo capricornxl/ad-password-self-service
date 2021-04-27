@@ -17,7 +17,7 @@ try:
     ad_ops = AdOps()
 except Exception as e:
     print(e)
-    pass
+    sys.exit(1)
 try:
     ding_ops = DingDingOps()
 except Exception as e:
