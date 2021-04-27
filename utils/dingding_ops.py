@@ -68,10 +68,14 @@ class DingDingOps(object):
             json=dict(tmp_auth_code=code),
         )
         resp = resp.json()
+        print(resp)
         try:
-            return True, resp["user_info"]["unionid"]
-        except Exception as e:
-            return False, 'ding_get_union_id_by_code: {}' .format(e)
+            if resp['errcode'] != 0:
+                return False, 'ding_get_union_id_by_code: %s' % str(resp)
+            else:
+                return True, resp["user_info"]["unionid"]
+        except Exception:
+            return False, 'ding_get_union_id_by_code: %s' % str(resp)
 
     def ding_get_userid_by_union_id(self, union_id):
         """
@@ -82,7 +86,10 @@ class DingDingOps(object):
         try:
             return True, self.ding_client_connect.user.get_userid_by_unionid(union_id)['userid']
         except Exception as e:
-            return False, 'ding_get_userid_by_union_id: {}' .format(e)
+            return False, 'ding_get_union_id_by_code: %s' % str(e)
+
+        except (KeyError, IndexError) as k_error:
+            return False, 'ding_get_union_id_by_code: %s' % str(k_error)
 
     @property
     def ding_get_org_user_count(self):
@@ -102,13 +109,16 @@ class DingDingOps(object):
         try:
             return True, self.ding_client_connect.user.get(user_id)
         except Exception as e:
-            return False, 'ding_get_userinfo_detail: {}' .format(e)
+            return False, 'ding_get_union_id_by_code: %s' % str(e)
+
+        except (KeyError, IndexError) as k_error:
+            return False, 'ding_get_union_id_by_code: %s' % str(k_error)
 
 
 if __name__ == '__main__':
     start = time.time()
-    d = DingDingOps()
-    print(d.ding_get_access_token)
-    # print(d.user.getuserinfo('2ecebee187863a8ea2863a7a2fa17b49'))
+    d = DingDingOps().ding_client_connect
+    unicode = ''
+    # print(d.)
     end = time.time()
     print("running:" + str(round((end - start), 3)))
