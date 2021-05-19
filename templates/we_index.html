@@ -1,0 +1,98 @@
+{% load static %}
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>密码自助服务</title>
+    <link type="text/css" rel="stylesheet" href="{% static 'css/login.css' %}">
+    <script type="text/javascript" src="{% static 'js/jquery-1.8.3.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/check.js' %}"></script>
+    <script src="https://rescdn.qqmail.com/node/ww/wwopenmng/js/sso/wwLogin-1.0.0.js"></script>
+</head>
+<body>
+<div class="pagewrap">
+    <div class="main">
+        <div class="header">
+        </div>
+        <div class="content">
+            <div class="con_left">
+                <div style="margin: 0 auto; width:100%; height: 200px; line-height: 200px;" align="center">
+                    <p style="margin: 0 auto; color: #fdfdfe; font-size: 36px; width:100%; ">「域账号或邮箱」<small>密码自助平台</small></p>
+                </div>
+                <div style="margin: 0 auto; width:400px; height: 240px;">
+                    <p style="margin: 0 auto; color: #fdfdfe; font-size: 16px; width:100%;
+">提示：新密码要求满足8至30位长度(不包含空格)，至少包含大小写字母及数字组成。</p>
+                    <p style="margin: 0 auto; color: #fdfdfe; font-size: 16px; width:100%;
+">如果密码己遗忘，可点击[重置/解锁]，使用钉钉扫描验证后直接重置密码。</p>
+                </div>
+            </div>
+            <div class="con_right">
+                <div class="con_r_top">
+                    <a href="javascript:" class="right"
+                       style="color: rgb(51, 51, 51); border-bottom-width: 2px; border-bottom-style: solid; border-bottom-color: rgb(46, 85, 142);">修改密码</a>
+                    <a href="javascript:" class="left"
+                       style="color: rgb(153, 153, 153); border-bottom-width: 2px; border-bottom-style: solid; border-bottom-color: rgb(222, 222, 222);">重置/解锁</a>
+                </div>
+                <ul>
+                    <li class="con_r_right" style="display: block;">
+                        <form name="modifypwd" method="post" action="" autocomplete="off">
+                            {% csrf_token %}
+                            <div class="user">
+                                <div><span class="user-icon"></span>
+                                    <input type="text" id="username" name="username" placeholder="格式：abc\lisi、lisi、lisi@abc.com" value="">
+                                </div>
+                                <div><span class="mima-icon"></span>
+                                    <input type="password" id="old_password" name="old_password"
+                                           placeholder=" 输入旧密码" value="">
+                                </div>
+                                <div><span class="mima-icon"></span>
+                                    <input type="password" id="new_password" name="new_password"
+                                           placeholder=" 输入新密码" value="">
+                                </div>
+                                <div><span class="mima-icon"></span>
+                                    <input type="password" id="ensure_password" name="ensure_password"
+                                           placeholder=" 再次输入新密码" value="">
+                                </div>
+                            </div>
+                            <br>
+                            <button id="btn_modify" type="submit">修改密码</button>
+                        </form>
+                    </li>
+
+                    <li class="con_r_left" style="display: none;">
+                        <div style="margin-top: -30px" class="erweima">
+                            <div style="width: 300px; height: 300px; margin: 0 auto" id="we_code"></div>
+                            <script type="text/javascript">
+                                let home_url = "{{ home_url }}";
+                                let app_id = "{{ app_id }}";
+                                let agent_id = "{{ agent_id }}"
+                                let redirect_url = encodeURIComponent(home_url + '/callbackCheck');
+                                window.WwLogin({
+                                    id: "we_code",
+                                    appid: app_id,
+                                    agentid: agent_id,
+                                    redirect_uri: redirect_url,
+                                    // 样式使用base64加密，而不使用https的方式
+                                    href: 'data:text/css;base64, ' +
+                                        'LmltcG93ZXJCb3ggLnRpdGxlIHtkaXNwbGF5OiBub25lO30KLmltcG93ZXJCb3ggLnFyY29kZSB7d2lkdGg6IDIyMHB4O30KLmltcG93ZXJCb3ggLmluZm8ge3dpZHRoOiAyMjBweDt9Ci5zdGF0dXNfaWNvbiB7ZGlzcGxheTogbm9uZSAgIWltcG9ydGFudH0KLmltcG93ZXJCb3ggLnN0YXR1cy5zdGF0dXNfYnJvd3NlciB7ZGlzcGxheTogbm9uZTt9Ci5pbXBvd2VyQm94IC5zdGF0dXMge3RleHQtYWxpZ246IGNlbnRlcjt9'
+                                });
+                            </script>
+                        </div>
+                        <div style="height: 70px; margin-top: -30px">
+                            <p style="font-size: 18px; color: #2e558e" align="center">企业微信扫码验证用户信息</p>
+                        </div>
+
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    window.onload = function () {
+        if (!!window.ActiveXObject || "ActiveXObject" in window)
+            alert("您当前使用的浏览器为IE或IE内核，因为IE各种体验问题，本网站不对IE兼容。\n为能正常使用密码自助修改服务，请更换谷歌、火狐等非IE核心的浏览器。\n如果是360、Maxthon等这类双核心浏览器，请切换至[极速模式]亦可。")
+    }
+</script>
+</body>
+</html>

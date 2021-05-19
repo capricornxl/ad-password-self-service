@@ -46,7 +46,7 @@ class AdOps(object):
         self.authentication = authentication
         self.auto_bind = auto_bind
 
-        server = Server(host='%s' % AD_HOST, use_ssl=self.use_ssl, port=port, get_info=ALL)
+        server = Server(host='%s' % AD_HOST, connect_timeout=1, use_ssl=self.use_ssl, port=port, get_info=ALL)
         try:
             self.conn = Connection(server, auto_bind=self.auto_bind, user=r'{}\{}'.format(self.domain, self.user), password=self.password,
                                    authentication=self.authentication, raise_exceptions=True)
@@ -115,7 +115,7 @@ class AdOps(object):
 
     def ad_get_user_dn_by_account(self, username):
         """
-        通过mail查询某个用户的完整DN
+        通过username查询某个用户的完整DN
         :param username:
         :return: DN
         """
@@ -179,7 +179,7 @@ class AdOps(object):
 
     def ad_get_user_locked_status_by_account(self, username):
         """
-        通过mail获取某个用户账号是否被锁定
+        通过username获取某个用户账号是否被锁定
         :param username:
         :return: 如果结果是1601-01-01说明账号未锁定，返回0
         """

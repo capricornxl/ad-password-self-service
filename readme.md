@@ -6,7 +6,7 @@
 用户自行重置密码时如果通过手机号来进行钉钉与AD之间的验证就行不通了。 
  
 ### 新版本逻辑：
->用户扫码通过之后，通过临时授权码，提取用户的unionid，再通过unionid判断用户在本企业中是否存在。如果存在，提取用户钉钉账号的邮箱，通过邮箱转成账号，将账号拿到AD中进行比对来验证账号在AD中是否存在并账号状态是激活的。满足以上条件的账号就会视为可自行重置密码。
+>用户扫码通过之后，通过临时授权码，提取用户的userid，再通过userid断用户在本企业中是否存在。如果存在，提取钉钉/企业微信用户的邮箱，通过邮箱转成账号，将账号拿到AD中进行比对来验证账号在AD中是否存在并账号状态是激活的。满足以上条件的账号就会视为可自行重置密码。
 
 ### 代码提交到--新分支：
 ```
@@ -29,6 +29,14 @@ AD必须使用SSL才能修改密码（这里被坑了N久...）
 + 重写了用户账号的格式兼容，现在用户账号可以兼容：username、DOMAIN\username、username@abc.com这三种格式。
 + 优化了整体的代码逻辑，去掉一些冗余重复的代码。
 
+### 2021/05/19 -- 更新：
++ 添加了企业微信支持，修改pwdselfservice/local_settings.py中的SCAN_CODE_TYPE = 'DING'或SCAN_CODE_TYPE = 'WEWORK'，区分使用哪个应用扫码验证
++ 添加Reids缓存Token支持，如果不配置Redis则使用MemoryStorage缓存到内存中
+
+Redis的安装和配置方法请自行百度，比较简单
+  > 切记Redis一定请配置密码，弱密码或没有密码的Redis如果不小心暴露到公网，极其容易导致机器被黑用来挖矿。
+
+整体验证逻辑不变，如果需要使用其它字段关联到AD验证的，请自行修改代码。
 
 ## 线上环境需要的基础环境：
 + Python 3.8.9 (可自行下载源码包放到项目目录下，使用一键安装)
@@ -37,6 +45,7 @@ AD必须使用SSL才能修改密码（这里被坑了N久...）
 
 ## 截图
 ![截图1](screenshot/Snipaste_2019-07-15_20-05-49.jpg)
+
 ![截图2](screenshot/Snipaste_2019-07-15_20-06-14.jpg)
 
 
@@ -48,7 +57,9 @@ AD必须使用SSL才能修改密码（这里被坑了N久...）
 
 参考截图配置：
 ![截图3](screenshot/h5微应用.png)
+
 ![截图4](screenshot/h5微应用--开发管理.png)
+
 ![截图5](screenshot/h5微应用--权限管理.png)
 
 #### 移动接入应用--登录权限：
@@ -57,6 +68,19 @@ AD必须使用SSL才能修改密码（这里被坑了N久...）
 
 参考截图配置：
 ![截图6](screenshot/移动应用接入--登录.png)
+
+
+## 企业微信必要条件：
+* 创建应用，记录下企业的CorpId，应用的ID和Secret。
+
+参考截图：
+![截图7](screenshot/微扫码13.png)
+
+![截图8](screenshot/微扫码14.png)
+
+![截图9](screenshot/微扫码15.png)
+
+![截图10](screenshot/微扫码16.png)
 
 
 ## 使用脚本自动部署：
@@ -72,7 +96,7 @@ AD必须使用SSL才能修改密码（这里被坑了N久...）
 # AD主机，可以是IP或主机域名，例如可以是: abc.com或172.16.122.1
 AD_HOST = r'修改成自己的'
 
-# AD域控的DOMAIN名，例如：abc、abc.com
+# AD域控的DOMAIN名，例如：abc
 AD_DOMAIN = r'修改成自己的'
 
 # 用于登录AD做用户信息处理的账号，需要有修改用户账号密码或信息的权限。
@@ -90,9 +114,12 @@ AD_USE_SSL = True
 # 连接的端口，如果启用SSL默认是636，否则就是389
 AD_CONN_PORT = 636
 
+# 扫码验证的类型
+#       钉钉 / 企业微信，自行修改
+# 值是：DING /  WEWORK
+SCAN_CODE_TYPE = 'DING'
 
-# ########## 钉钉
-# 钉钉配置
+# ########## 钉钉 《如果不使用钉钉扫码，可不用配置》##########
 # 钉钉接口主地址，不可修改
 DING_URL = r'https://oapi.dingtalk.com'
 
@@ -104,11 +131,26 @@ DING_AGENT_ID = r'修改为自己的'
 DING_APP_KEY = r'修改为自己的'
 DING_APP_SECRET = r'修改为自己的'
 
-# 移动应用接入 主要为了实现通过扫码拿到用户的unioid
+# 移动应用接入 主要为了实现通过扫码拿到用户的unionid
 DING_MO_APP_ID = r'修改为自己的'
 DING_MO_APP_SECRET = r'修改为自己的'
 
-# 执行：python3 ./resetpwd/utils/crypto.py 生成
+
+# ####### 企业微信《如果不使用企业微信扫码，可不用配置》 ##########
+# 企业微信的企业ID
+WEWORK_CORP_ID = r'修改为自己的'
+# 应用的AgentId
+WEWORK_AGENT_ID = r'修改为自己的'
+# 应用的Secret
+WEWORK_AGNET_SECRET = r'修改为自己的'
+
+# Redis配置
+# redis的连接地址，redis://<Ip/Host>:<Port>/<数据库>
+REDIS_LOCATION = r'redis://127.0.0.1:6379/1'
+REDIS_PASSWORD = r'12345678'
+
+# ##########################
+# 执行：python3 ./utils/crypto.py 生成
 # 可自行生成后替换
 CRYPTO_KEY = b'dp8U9y7NAhCD3MoNwPzPBhBtTZ1uI_WWSdpNs6wUDgs='
 
@@ -116,6 +158,7 @@ CRYPTO_KEY = b'dp8U9y7NAhCD3MoNwPzPBhBtTZ1uI_WWSdpNs6wUDgs='
 TMPID_COOKIE_AGE = 300
 
 # 主页域名，钉钉跳转等需要指定域名，格式：pwd.abc.com。
+# 如果是自定义安装，请修改成自己的域名
 HOME_URL = 'PWD_SELF_SERVICE_DOMAIN'
 ````
 ### 执行部署脚本  
@@ -146,7 +189,7 @@ chmod +x auto-install.sh
 # AD主机，可以是IP或主机域名，例如可以是: abc.com或172.16.122.1
 AD_HOST = r'修改成自己的'
 
-# AD域控的DOMAIN名，例如：abc、abc.com
+# AD域控的DOMAIN名，例如：abc
 AD_DOMAIN = r'修改成自己的'
 
 # 用于登录AD做用户信息处理的账号，需要有修改用户账号密码或信息的权限。
@@ -164,9 +207,12 @@ AD_USE_SSL = True
 # 连接的端口，如果启用SSL默认是636，否则就是389
 AD_CONN_PORT = 636
 
+# 扫码验证的类型
+#       钉钉 / 企业微信，自行修改
+# 值是：DING /  WEWORK
+SCAN_CODE_TYPE = 'DING'
 
-# ########## 钉钉
-# 钉钉配置
+# ########## 钉钉 《如果不使用钉钉扫码，可不用配置》##########
 # 钉钉接口主地址，不可修改
 DING_URL = r'https://oapi.dingtalk.com'
 
@@ -178,11 +224,26 @@ DING_AGENT_ID = r'修改为自己的'
 DING_APP_KEY = r'修改为自己的'
 DING_APP_SECRET = r'修改为自己的'
 
-# 移动应用接入 主要为了实现通过扫码拿到用户的unioid
+# 移动应用接入 主要为了实现通过扫码拿到用户的unionid
 DING_MO_APP_ID = r'修改为自己的'
 DING_MO_APP_SECRET = r'修改为自己的'
 
-# 执行：python3 ./resetpwd/utils/crypto.py 生成
+
+# ####### 企业微信《如果不使用企业微信扫码，可不用配置》 ##########
+# 企业微信的企业ID
+WEWORK_CORP_ID = r'修改为自己的'
+# 应用的AgentId
+WEWORK_AGENT_ID = r'修改为自己的'
+# 应用的Secret
+WEWORK_AGNET_SECRET = r'修改为自己的'
+
+# Redis配置
+# redis的连接地址，redis://<Ip/Host>:<Port>/<数据库>
+REDIS_LOCATION = r'redis://127.0.0.1:6379/1'
+REDIS_PASSWORD = r'12345678'
+
+# ##########################
+# 执行：python3 ./utils/crypto.py 生成
 # 可自行生成后替换
 CRYPTO_KEY = b'dp8U9y7NAhCD3MoNwPzPBhBtTZ1uI_WWSdpNs6wUDgs='
 
@@ -190,6 +251,7 @@ CRYPTO_KEY = b'dp8U9y7NAhCD3MoNwPzPBhBtTZ1uI_WWSdpNs6wUDgs='
 TMPID_COOKIE_AGE = 300
 
 # 主页域名，钉钉跳转等需要指定域名，格式：pwd.abc.com。
+# 如果是自定义安装，请修改成自己的域名
 HOME_URL = 'PWD_SELF_SERVICE_DOMAIN'
 ````
 
