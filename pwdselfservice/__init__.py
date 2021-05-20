@@ -5,6 +5,7 @@ from django_redis import get_redis_connection
 
 from utils.storage.memorystorage import MemoryStorage
 from utils.storage.kvstorage import KvStorage
+from cryptography.fernet import Fernet
 
 try:
     redis_conn = get_redis_connection()
@@ -18,3 +19,5 @@ except Exception as e:
     print("如果确定需要使用Redis作为缓存，请排查Redis配置，错误信息如下：")
     print("Redis Exception: {}".format(e))
 
+
+crypto_key = Fernet.generate_key()
