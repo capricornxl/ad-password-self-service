@@ -52,8 +52,8 @@ class AdOps(object):
                                    authentication=self.authentication, raise_exceptions=True)
         except LDAPOperationResult as e:
             raise LDAPOperationResult("LDAPOperationResult: " + str(e))
-        except Exception:
-            raise Exception('出现错误：无法连接到AD控制器。')
+        except Exception as e:
+            raise Exception('LDAP Exception：无法连接到AD控制器 --- {}' .format(e))
 
     def ad_auth_user(self, username, password):
         """

@@ -2,7 +2,6 @@
 import os
 import sys
 from utils.ad_ops import AdOps
-from django_redis import get_redis_connection
 
 if __name__ == '__main__':
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'pwdselfservice.settings')
@@ -15,10 +14,4 @@ if __name__ == '__main__':
             "forget to activate a virtual environment?"
         ) from exc
 
-    try:
-        AdOps()
-    except Exception as e:
-        print(str(e))
-        print("未能连接到AD，先决条件未满足，Django不会运行..")
-        sys.exit(1)
     execute_from_command_line(sys.argv)
