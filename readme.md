@@ -96,7 +96,7 @@ Redis的安装和配置方法请自行百度，比较简单
 ### 把整个项目目录上传到新的服务器上
 
 #### 先修改配置文件，按自己实际的配置修改项目配置文件：
-修改pwdselfservice/local_settings.py中的参数，按自己的实际参数修改
+修改conf/local_settings.py中的参数，按自己的实际参数修改
 ```` python
 # ########## AD配置，修改为自己的
 # AD主机，可以是IP或主机域名，例如可以是: abc.com或172.16.122.1
@@ -188,7 +188,7 @@ chmod +x auto-install.sh
 
 
 ### 按自己实际的配置修改项目配置参数：
-修改pwdselfservice/local_settings.py中的参数，按自己的实际参数修改
+修改conf/local_settings.py中的参数，按自己的实际参数修改
 
 ```` python
 # ########## AD配置，修改为自己的

@@ -1,14 +1,19 @@
 import os
-from pwdselfservice.local_settings import REDIS_PASSWORD, REDIS_LOCATION
+
+APP_ENV = os.getenv('APP_ENV')
+if APP_ENV == 'dev':
+    from conf.local_settings_dev import REDIS_PASSWORD, REDIS_LOCATION
+    DEBUG = True
+else:
+    from conf.local_settings import REDIS_PASSWORD, REDIS_LOCATION
+    DEBUG = False
+
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'nxnm3#&2tat_c2i6%$y74a)t$(3irh^gpwaleoja1kdv30fmcm'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 

@@ -218,7 +218,7 @@ chkconfig uwsgiserver on
 echo "处理uwsgiserver启动脚本完成"
 echo
 
-sed -i "s@PWD_SELF_SERVICE_DOMAIN@${PWD_SELF_SERVICE_DOMAIN}@g" ${SHELL_FOLDER}/pwdselfservice/local_settings.py
+sed -i "s@PWD_SELF_SERVICE_DOMAIN@${PWD_SELF_SERVICE_DOMAIN}@g" ${SHELL_FOLDER}/conf/local_settings.py
 
 ##Nginx vhost配置
 cat << EOF > /etc/nginx/conf.d/pwdselfservice.conf
@@ -250,7 +250,6 @@ echo "Uwsgi停止：/etc/init.d/uwsgi stop"
 echo "Uwsgi重启：/etc/init.d/uwsgi restart"
 echo
 echo
-echo "文件${SHELL_FOLDER}/pwdselfservice/local_setting.py中必要参数需要你自行修改"
-echo "此文件中有AD和钉钉的一些参数，按自己企业的修改"
+echo "文件${SHELL_FOLDER}/conf/local_setting.py中配置参数请自动确认下是否完整"
 echo
 echo "======================================================================="

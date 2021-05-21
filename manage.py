@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import os
 import sys
-from utils.ad_ops import AdOps
 
 if __name__ == '__main__':
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'pwdselfservice.settings')

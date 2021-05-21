@@ -1,6 +1,5 @@
 from django.forms import fields as c_fields
 from django import forms as c_forms
-from django.core.exceptions import ValidationError
 
 
 class CheckForm(c_forms.Form):

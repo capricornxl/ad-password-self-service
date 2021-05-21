@@ -2,8 +2,12 @@ from ldap3 import *
 from ldap3.core.exceptions import LDAPInvalidCredentialsResult, LDAPOperationResult
 from ldap3.core.results import *
 from ldap3.utils.dn import safe_dn
-
-from pwdselfservice.local_settings import *
+import os
+APP_ENV = os.getenv('APP_ENV')
+if APP_ENV == 'dev':
+    from conf.local_settings_dev import *
+else:
+    from conf.local_settings import *
 
 """
 根据以下网站的说明：

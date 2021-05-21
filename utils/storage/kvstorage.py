@@ -54,7 +54,7 @@ def byte2int(c):
 
 class KvStorage(BaseStorage):
 
-    def __init__(self, kvdb, prefix='wework'):
+    def __init__(self, kvdb, prefix='client'):
         for method_name in ('get', 'set', 'delete'):
             assert hasattr(kvdb, method_name)
         self.kvdb = kvdb

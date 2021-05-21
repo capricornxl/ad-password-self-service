@@ -7,11 +7,17 @@
 # @Date：          2021/5/18 16:55
 from __future__ import absolute_import, unicode_literals
 
-from pwdselfservice import cache_storage
+import os
 
-from pwdselfservice.local_settings import *
+from pwdselfservice import cache_storage
 from utils.storage.cache import WeWorkCache
-from utils.wework_api.AbstractApi import *
+from utils.wework_api.abstract_api import *
+
+APP_ENV = os.getenv('APP_ENV')
+if APP_ENV == 'dev':
+    from conf.local_settings_dev import *
+else:
+    from conf.local_settings import *
 
 CORP_API_TYPE = {
     'GET_ACCESS_TOKEN': ['/cgi-bin/gettoken', 'GET'],
@@ -117,7 +123,7 @@ class WeWorkOps(AbstractApi):
                     'code': code,
                 }).get('UserId')
         except ApiException as e:
-            return False, "get_user_id_by_code: {}-{}" .format(e.errCode, e.errMsg)
+            return False, "get_user_id_by_code: {}-{}".format(e.errCode, e.errMsg)
         except Exception as e:
             return False, "get_user_id_by_code: {}".format(e)
 
@@ -129,7 +135,7 @@ class WeWorkOps(AbstractApi):
                     'userid': user_id,
                 })
         except ApiException as e:
-            return False, "get_user_detail_by_user_id: {}-{}" .format(e.errCode, e.errMsg)
+            return False, "get_user_detail_by_user_id: {}-{}".format(e.errCode, e.errMsg)
         except Exception as e:
             return False, "get_user_detail_by_user_id: {}".format(e)
 
@@ -137,4 +143,3 @@ class WeWorkOps(AbstractApi):
 if __name__ == '__main__':
     wx = WeWorkOps()
     print(wx.get_user_detail_by_user_id('XiangLe'))
-
