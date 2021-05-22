@@ -2,9 +2,10 @@ import logging
 import os
 from django.shortcuts import render
 from utils.ad_ops import AdOps
+from ldap3.core.exceptions import LDAPException
 from utils.format_username import format2username, get_user_is_active
 from .form import CheckForm
-from .utils import code_2_user_id, crypto_id_2_user_info, ops_account, crypto_id_2_user_id, crypto_user_id_2_cookie
+from .utils import code_2_user_info, crypto_id_2_user_info, ops_account, crypto_id_2_user_id, crypto_user_id_2_cookie
 APP_ENV = os.getenv('APP_ENV')
 if APP_ENV == 'dev':
     from conf.local_settings_dev import SCAN_CODE_TYPE, DING_MO_APP_ID, WEWORK_CORP_ID, WEWORK_AGENT_ID, HOME_URL
@@ -39,13 +40,13 @@ class PARAMS(object):
 
 scan_params = PARAMS()
 _ops = scan_params.ops
-try:
-    ad_ops = AdOps()
-    print("初始化Active Directory连接成功...")
-except Exception as e:
-    ad_ops = None
-    print("初始化Active Directory连接失败...")
-    print(str(e))
+# try:
+#     AdOps() = AdOps()
+#     print("初始化Active Directory连接成功...")
+# except Exception as e:
+#     AdOps() = LDAPException("连接域控制器失败，无法访问到LDAP")
+#     print("初始化Active Directory连接失败...")
+#     print(str(e))
 
 
 def index(request):
@@ -86,7 +87,7 @@ def index(request):
         # 格式化用户名
         username = format2username(username)
         # 检测账号状态
-        auth_status, auth_result = ad_ops.ad_auth_user(username=username, password=old_password)
+        auth_status, auth_result = AdOps().ad_auth_user(username=username, password=old_password)
         if not auth_status:
             context = {
                 'msg': str(auth_result),
@@ -94,7 +95,7 @@ def index(request):
                 'button_display': "返回"
             }
             return render(request, msg_template, context)
-        return ops_account(ad_ops, request, msg_template, home_url, username, new_password)
+        return ops_account(AdOps(), request, msg_template, home_url, username, new_password)
     else:
         context = {
             'msg': "请从主页进行修改密码操作或扫码验证用户信息。",
@@ -124,7 +125,7 @@ def callback_check(request):
         return render(request, msg_template, context)
     print("code: {}" .format(code))
     try:
-        _status, user_id, user_info = code_2_user_id(_ops, request, msg_template, home_url, code)
+        _status, user_id, user_info = code_2_user_info(_ops, request, msg_template, home_url, code)
         if not _status:
             return render(request, msg_template, user_id)
         # 账号是否是激活的
@@ -156,17 +157,9 @@ def reset_pwd_by_callback(request):
     home_url = '%s://%s' % (request.scheme, HOME_URL)
     # 从cookie中提取union_id，并解密，然后对当前union_id的用户进行重置密码
     if request.method == 'GET':
-        _status, user_id = crypto_id_2_user_id(request, msg_template, home_url)
+        _status, user_info = crypto_id_2_user_info(_ops, request, msg_template, home_url, scan_params.SCAN_APP)
         if not _status:
-            return render(request, msg_template, user_id)
-        userid_status, user_info = _ops.get_user_detail_by_user_id(user_id)
-        if not userid_status:
-            context = {
-                'msg': '获取{}用户信息失败，错误信息：{}'.format(user_info, scan_params.SCAN_APP),
-                'button_click': "window.location.href='%s'" % home_url,
-                'button_display': "返回主页"
-            }
-            return render(request, msg_template, context)
+            return render(request, msg_template, user_info)
         # 通过user_id拿到用户信息，并格式化为username
         username = format2username(user_info.get('email'))
         # 如果邮箱能提取到，则格式化之后，提取出账号提交到前端绑定
@@ -191,7 +184,7 @@ def reset_pwd_by_callback(request):
             if not _status:
                 return render(request, msg_template, user_info)
             username = format2username(user_info.get('email'))
-            return ops_account(ad_ops, request, msg_template, home_url, username, _new_password)
+            return ops_account(ad_ops=AdOps(), request=request, msg_template=msg_template, home_url=home_url, username=username, new_password=_new_password)
         except Exception as reset_e:
             context = {
                 'msg': "错误[%s]，请与管理员联系." % str(reset_e),
@@ -231,7 +224,7 @@ def unlock_account(request):
         if not _status:
             return render(request, msg_template, user_info)
         username = format2username(user_info.get('email'))
-        return ops_account(ad_ops, request, msg_template, home_url, username, None)
+        return ops_account(AdOps(), request, msg_template, home_url, username, None)
     else:
         context = {
             'msg': "请从主页开始进行操作。",

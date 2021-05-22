@@ -1,5 +1,6 @@
+import ldap3
 from ldap3 import *
-from ldap3.core.exceptions import LDAPInvalidCredentialsResult, LDAPOperationResult
+from ldap3.core.exceptions import LDAPInvalidCredentialsResult, LDAPOperationResult, LDAPExceptionError,LDAPException
 from ldap3.core.results import *
 from ldap3.utils.dn import safe_dn
 import os
@@ -54,10 +55,12 @@ class AdOps(object):
         try:
             self.conn = Connection(server, auto_bind=self.auto_bind, user=r'{}\{}'.format(self.domain, self.user), password=self.password,
                                    authentication=self.authentication, raise_exceptions=True)
-        except LDAPOperationResult as e:
-            raise LDAPOperationResult("LDAPOperationResult: " + str(e))
-        except Exception as e:
-            raise Exception('LDAP Exception：无法连接到AD控制器 --- {}' .format(e))
+        except LDAPInvalidCredentialsResult as lic_e:
+            raise LDAPOperationResult("LDAPInvalidCredentialsResult: " + str(lic_e.message))
+        except LDAPOperationResult as lo_e:
+            raise LDAPOperationResult("LDAPOperationResult: " + str(lo_e.message))
+        except LDAPException as l_e:
+            raise LDAPException("LDAPException: " + str(l_e))
 
     def ad_auth_user(self, username, password):
         """
@@ -100,10 +103,10 @@ class AdOps(object):
         :param username:
         :return: True or False
         """
-        base_dn = BASE_DN
-        condition = '(&(objectclass=user)(sAMAccountName={}))'.format(username)
-        attributes = ['sAMAccountName']
-        return self.conn.search(base_dn, condition, attributes=attributes)
+        try:
+            return True, self.conn.search(BASE_DN, '(&(objectclass=user)(sAMAccountName={}))'.format(username), attributes=['sAMAccountName'])
+        except Exception as e:
+            return False, "AdOps Exception: {}" .format(e)
 
     def ad_get_user_displayname_by_account(self, username):
         """
@@ -111,11 +114,11 @@ class AdOps(object):
         :param username:
         :return: user_displayname
         """
-        self.conn.search(BASE_DN, '(&(objectclass=user)(sAMAccountName={}))'.format(username), attributes=['name'])
         try:
+            self.conn.search(BASE_DN, '(&(objectclass=user)(sAMAccountName={}))'.format(username), attributes=['name'])
             return True, self.conn.entries[0]['name']
         except Exception as e:
-            return False, str(e)
+            return False, "AdOps Exception: {}" .format(e)
 
     def ad_get_user_dn_by_account(self, username):
         """
@@ -123,8 +126,11 @@ class AdOps(object):
         :param username:
         :return: DN
         """
-        self.conn.search(BASE_DN, '(&(objectclass=user)(sAMAccountName={}))'.format(username), attributes=['distinguishedName'])
-        return str(self.conn.entries[0]['distinguishedName'])
+        try:
+            self.conn.search(BASE_DN, '(&(objectclass=user)(sAMAccountName={}))'.format(username), attributes=['distinguishedName'])
+            return True, str(self.conn.entries[0]['distinguishedName'])
+        except Exception as e:
+            return False, "AdOps Exception: {}" .format(e)
 
     def ad_get_user_status_by_account(self, username):
         """
@@ -132,8 +138,11 @@ class AdOps(object):
         :param username:
         :return: user_account_control code
         """
-        self.conn.search(BASE_DN, '(&(objectclass=user)(sAMAccountName={}))'.format(username), attributes=['userAccountControl'])
-        return self.conn.entries[0]['userAccountControl']
+        try:
+            self.conn.search(BASE_DN, '(&(objectclass=user)(sAMAccountName={}))'.format(username), attributes=['userAccountControl'])
+            return True, self.conn.entries[0]['userAccountControl']
+        except Exception as e:
+            return False, "AdOps Exception: {}" .format(e)
 
     def ad_unlock_user_by_account(self, username):
         """
@@ -141,11 +150,14 @@ class AdOps(object):
         :param username:
         :return:
         """
-        user_dn = self.ad_get_user_dn_by_account(username)
-        try:
-            return True, self.conn.extend.microsoft.unlock_account(user='%s' % user_dn)
-        except Exception as e:
-            return False, str(e)
+        _status, user_dn = self.ad_get_user_dn_by_account(username)
+        if _status:
+            try:
+                return True, self.conn.extend.microsoft.unlock_account(user='%s' % user_dn)
+            except Exception as e:
+                return False, "AdOps Exception: {}".format(e)
+        else:
+            return False, user_dn
 
     def ad_reset_user_pwd_by_account(self, username, new_password):
         """
@@ -153,33 +165,35 @@ class AdOps(object):
         :param username:
         :return:
         """
-        user_dn = self.ad_get_user_dn_by_account(username)
-        if self.conn.check_names:
-            user_dn = safe_dn(user_dn)
-        encoded_new_password = ('"%s"' % new_password).encode('utf-16-le')
-        result = self.conn.modify(user_dn,
-                                  {'unicodePwd': [(MODIFY_REPLACE, [encoded_new_password])]},
-                                  )
-
-        if not self.conn.strategy.sync:
-            _, result = self.conn.get_response(result)
-        else:
-            if self.conn.strategy.thread_safe:
-                _, result, _, _ = result
+        _status, user_dn = self.ad_get_user_dn_by_account(username)
+        if _status:
+            if self.conn.check_names:
+                user_dn = safe_dn(user_dn)
+            encoded_new_password = ('"%s"' % new_password).encode('utf-16-le')
+            result = self.conn.modify(user_dn,
+                                      {'unicodePwd': [(MODIFY_REPLACE, [encoded_new_password])]},
+                                      )
+            if not self.conn.strategy.sync:
+                _, result = self.conn.get_response(result)
             else:
-                result = self.conn.result
+                if self.conn.strategy.thread_safe:
+                    _, result, _, _ = result
+                else:
+                    result = self.conn.result
 
-        # change successful, returns True
-        if result['result'] == RESULT_SUCCESS:
-            return True, '密码己修改成功，请妥善保管！'
+            # change successful, returns True
+            if result['result'] == RESULT_SUCCESS:
+                return True, '密码己修改成功，请妥善保管！'
 
-        # change was not successful, raises exception if raise_exception = True in connection or returns the operation result, error code is in result['result']
-        if self.conn.raise_exceptions:
-            from ldap3.core.exceptions import LDAPOperationResult
-            _msg = LDAPOperationResult(result=result['result'], description=result['description'], dn=result['dn'], message=result['message'],
-                                       response_type=result['type'])
-            return False, _msg
-        return False, result['result']
+            # change was not successful, raises exception if raise_exception = True in connection or returns the operation result, error code is in result['result']
+            if self.conn.raise_exceptions:
+                from ldap3.core.exceptions import LDAPOperationResult
+                _msg = LDAPOperationResult(result=result['result'], description=result['description'], dn=result['dn'], message=result['message'],
+                                           response_type=result['type'])
+                return False, _msg
+            return False, result['result']
+        else:
+            return False, user_dn
 
     def ad_get_user_locked_status_by_account(self, username):
         """
@@ -187,12 +201,15 @@ class AdOps(object):
         :param username:
         :return: 如果结果是1601-01-01说明账号未锁定，返回0
         """
-        self.conn.search(BASE_DN, '(&(objectclass=user)(sAMAccountName={}))'.format(username), attributes=['lockoutTime'])
-        locked_status = self.conn.entries[0]['lockoutTime']
-        if '1601-01-01' in str(locked_status):
-            return 0
-        else:
-            return locked_status
+        try:
+            self.conn.search(BASE_DN, '(&(objectclass=user)(sAMAccountName={}))'.format(username), attributes=['lockoutTime'])
+            locked_status = self.conn.entries[0]['lockoutTime']
+            if '1601-01-01' in str(locked_status):
+                return True, 'unlocked'
+            else:
+                return False, locked_status
+        except Exception as e:
+            return False, "AdOps Exception: {}" .format(e)
 
 
 if __name__ == '__main__':
@@ -204,14 +221,16 @@ if __name__ == '__main__':
     # print(conn.result)
 
     # conn = _ad_connect()
-    user = 'zhangsan'
-    old_password = 'K2dhhuT1Zf11111cnJ1ollC3y'
-    # old_password = 'L1qyrmZDUFeYW1OIualjlNhr4'
-    new_password = 'K2dhhuT1Zf11111cnJ1ollC3y'
-    ad_ops = AdOps()
-    # ad_ops = AdOps(user=user, password=old_password)
-    status, msg = ad_ops.ad_auth_user(username=user, password=old_password)
-    print(msg)
-    if status:
-        res = ad_ops.ad_reset_user_pwd_by_account(user, new_password)
-        print(res)
+    # user = 'zhangsan'
+    # old_password = 'K2dhhuT1Zf11111cnJ1ollC3y'
+    # # old_password = 'L1qyrmZDUFeYW1OIualjlNhr4'
+    # new_password = 'K2dhhuT1Zf11111cnJ1ollC3y'
+    # ad_ops = AdOps()
+    # # ad_ops = AdOps(user=user, password=old_password)
+    # status, msg = ad_ops.ad_auth_user(username=user, password=old_password)
+    # print(msg)
+    # if status:
+    #     res = ad_ops.ad_reset_user_pwd_by_account(user, new_password)
+    #     print(res)
+    _ad = AdOps()
+    print(_ad.ad_ensure_user_by_account('le.xiang'))
