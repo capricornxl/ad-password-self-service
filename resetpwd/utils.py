@@ -106,7 +106,7 @@ def ops_account(ad_ops, request, msg_template, home_url, username, new_password)
             'button_click': "window.location.href='%s'" % home_url,
             'button_display': "返回主页"
         }
-        return False, context
+        return render(request, msg_template, context)
 
     account_code = ad_ops.ad_get_user_status_by_account(username)
     if account_code in settings.AD_ACCOUNT_DISABLE_CODE:
@@ -115,7 +115,7 @@ def ops_account(ad_ops, request, msg_template, home_url, username, new_password)
             'button_click': "window.location.href='%s'" % home_url,
             'button_display': "返回主页"
         }
-        return False, context
+        return render(request, msg_template, context)
 
     if new_password:
         reset_status, result = ad_ops.ad_reset_user_pwd_by_account(username=username, new_password=new_password)
@@ -128,14 +128,14 @@ def ops_account(ad_ops, request, msg_template, home_url, username, new_password)
                     'button_click': "window.location.href='%s'" % home_url,
                     'button_display': "返回主页"
                 }
-                return True, context
+                return render(request, msg_template, context)
         else:
             context = {
                 'msg': "密码未修改/重置成功，错误信息：{}".format(result),
                 'button_click': "window.location.href='%s'" % home_url,
                 'button_display': "返回主页"
             }
-            return False, context
+            return render(request, msg_template, context)
     else:
         unlock_status, result = ad_ops.ad_unlock_user_by_account(username)
         if unlock_status:
@@ -144,11 +144,11 @@ def ops_account(ad_ops, request, msg_template, home_url, username, new_password)
                 'button_click': "window.location.href='%s'" % home_url,
                 'button_display': "返回主页"
             }
-            return True, context
+            return render(request, msg_template, context)
         else:
             context = {
                 'msg': "账号未能解锁，错误信息：{}".format(result),
                 'button_click': "window.location.href='%s'" % home_url,
                 'button_display': "返回主页"
             }
-            return False, context
+            return render(request, msg_template, context)
