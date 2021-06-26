@@ -17,6 +17,10 @@ SECRET_KEY = 'nxnm3#&2tat_c2i6%$y74a)t$(3irh^gpwaleoja1kdv30fmcm'
 
 ALLOWED_HOSTS = ['*']
 
+# 不安全的内部初始密码，用于检验新密码
+UN_SEC_PASSWORD = ['1qaz@WSX', '1234@Abc']
+
+
 # 创建日志的路径
 LOG_PATH = os.path.join(BASE_DIR, 'log')
 # 如果地址不存在，则会自动创建log文件夹

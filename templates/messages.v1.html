@@ -1,0 +1,41 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <title>自助密码平台</title>
+    <link rel="stylesheet" href="{% static 'css/dmaku.css' %}">
+    <script type="text/javascript" src="{% static 'js/jquery-1.8.3.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/alert.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/check.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/ddLogin-0.0.5.js' %}"></script>
+</head>
+<body>
+<div class="head-container" id="head-container">
+    <p>
+        密码自助服务平台
+    </p>
+</div>
+<div class="middle-container" id="middle-container">
+    <div class="form-container right-content-container"></div>
+    <div class="form-container left-content-container">
+        <form action="messages" method="get" autocomplete="off">
+            {% csrf_token %}
+            <h1>结果</h1>
+            <p style="font-size: 16px">{{ msg }}</p>
+        </form>
+    </div>
+    <div class="overlay-container">
+        <div class="overlay">
+            <div class="overlay-panel overlay-left"></div>
+            <div class="overlay-panel overlay-right">
+                <button class="ghost" id="btn_back" type="button" onclick="{{ button_click }}">{{ button_display }}</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="{% static 'js/dmaku.js' %}"></script>
+<script>
+</script>
+</body>
+</html>

@@ -1,0 +1,78 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <title>自助密码平台</title>
+    <link rel="stylesheet" href="{% static 'css/dmaku.css' %}">
+    <script type="text/javascript" src="{% static 'js/jquery-1.8.3.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/alert.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/check.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/wwLogin-1.0.0.js' %}"></script>
+</head>
+<body>
+<div class="head-container" id="head-container">
+    <p>
+        密码自助服务平台
+    </p>
+</div>
+<div class="middle-container" id="middle-container">
+    <div class="form-container right-content-container">
+        <form action="">
+            <div style="width: 300px; height: 300px; margin: 0 auto" id="feishu_code"></div>
+            <script type="text/javascript">
+                let home_url = "{{ home_url }}";
+                let app_id = "{{ app_id }}";
+                let agent_id = "{{ agent_id }}"
+                let redirect_url = encodeURIComponent(home_url + '/callbackCheck');
+                window.WwLogin({
+                    id: "we_code",
+                    appid: app_id,
+                    agentid: agent_id,
+                    redirect_uri: redirect_url,
+                    // 样式使用base64加密，而不使用https的方式
+                    href: 'data:text/css;base64, ' +
+                        'LmltcG93ZXJCb3ggLnRpdGxlIHtkaXNwbGF5OiBub25lO30KLmltcG93ZXJCb3ggLnFyY29kZSB7d2lkdGg6IDIyMHB4O30KLmltcG93ZXJCb3ggLmluZm8ge3dpZHRoOiAyMjBweDt9Ci5zdGF0dXNfaWNvbiB7ZGlzcGxheTogbm9uZSAgIWltcG9ydGFudH0KLmltcG93ZXJCb3ggLnN0YXR1cy5zdGF0dXNfYnJvd3NlciB7ZGlzcGxheTogbm9uZTt9Ci5pbXBvd2VyQm94IC5zdGF0dXMge3RleHQtYWxpZ246IGNlbnRlcjt9'
+                });
+            </script>
+            <p>使用企业微信扫一扫</p>
+        </form>
+    </div>
+    <div class="form-container left-content-container">
+        <form action="/" method="post" autocomplete="off">
+            {% csrf_token %}
+            <h1>修改密码</h1>
+            <span>新密码8至30位长度，要求包含大小写字母及数字。</span>
+            <input type="text" id="username" name="username" placeholder="账号，格式：abc\lisi、lisi、lisi@abc.com">
+            <input type="password" id="old_password" name="old_password" placeholder="旧密码">
+            <input type="password" id="new_password" name="new_password" placeholder="新密码">
+            <input type="password" id="ensure_password" name="ensure_password" placeholder="再次确认新密码">
+            <p></p>
+            <button id="btn_modify" type="submit">提交</button>
+        </form>
+    </div>
+    <div class="overlay-container">
+        <div class="overlay">
+            <div class="overlay-panel overlay-left">
+                <h1>我要修改密码</h1>
+                <p>记得自己的旧密码，需要自行修改</p>
+                <p>⬇️点它</p>
+                <button class="ghost" id="modifyPwd">自助修改密码</button>
+            </div>
+            <div class="overlay-panel overlay-right">
+                <h1>忘记密码或被锁</h1>
+                <p>如果密码己遗忘，可点击[扫码验证]，使用{{ scan_app }}扫码验证身份信息后进行重置</p>
+                <p>⬇️点它</p>
+                <button class="ghost" id="scanCode">扫码验证</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="{% static 'js/dmaku.js' %}"></script>
+<script>
+    let qrcode_inner = document.getElementsByClassName("form-container right-content-container")
+    console.log(qrcode_inner)
+    BtnClick("#btn_modify", 'modify',{{ unsecpwd|safe }})
+</script>
+</body>
+</html>

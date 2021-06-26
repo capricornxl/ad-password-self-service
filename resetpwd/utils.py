@@ -150,7 +150,7 @@ def ops_account(ad_ops, request, msg_template, home_url, username, new_password)
                 unlock_status, result = ad_ops.ad_unlock_user_by_account(username)
                 if unlock_status:
                     context = {
-                        'msg': "密码己修改/重置成功，请妥善保管。你可以点击返回主页或直接关闭此页面！",
+                        'msg': "密码己修改成功，请妥善保管。你可以点击返回主页或直接关闭此页面！",
                         'button_click': "window.location.href='%s'" % home_url,
                         'button_display': "返回主页"
                     }

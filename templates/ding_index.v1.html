@@ -1,0 +1,102 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <title>自助密码平台</title>
+    <link rel="stylesheet" href="{% static 'css/dmaku.css' %}">
+    <script type="text/javascript" src="{% static 'js/jquery-1.8.3.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/alert.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/check.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/ddLogin-0.0.5.js' %}"></script>
+</head>
+<body>
+<div class="head-container" id="head-container">
+    <p>
+        密码自助服务平台
+    </p>
+</div>
+<div class="middle-container" id="middle-container">
+    <div class="form-container right-content-container">
+        <form action="" name="ding_qrcode">
+            <div style="width: 300px; height: 300px; margin: 0 auto" id="ding_code"></div>
+            <p>使用钉钉扫一扫进行登录验证</p>
+            <script type="text/javascript">
+                // 构造钉钉登录二唯码
+                var home_url = "{{ home_url }}";
+                var app_id = "{{ app_id }}";
+                var redirect_url = encodeURIComponent(home_url + '/callbackCheck');
+                var goto = encodeURIComponent('https://oapi.dingtalk.com/connect/qrconnect?appid='
+                    + app_id
+                    + '&response_type=code&scope=snsapi_login&state=STATE&redirect_uri='
+                    + redirect_url);
+                console.log(goto)
+                DDLogin({
+                    id: "ding_code",
+                    goto: goto,
+                    style: "border:none;background-color:#FFFFFF;",
+                    width: "300",
+                    height: "300"
+                });
+                // 扫码后的操作
+                var hanndleMessage = function (event) {
+                    var origin = event.origin;
+                    console.log("origin", event.origin)
+                    if (origin === "https://login.dingtalk.com") {
+                        var loginTmpCode = event.data;
+                        console.log("loginTmpCode", loginTmpCode);
+                        if (loginTmpCode) {
+                            //拿到loginTmpCode后就可以在这里构造跳转链接进行跳转了
+                            location.href = 'https://oapi.dingtalk.com/connect/oauth2/sns_authorize?appid='
+                                + app_id
+                                + '&response_type=code&scope=snsapi_login&state=STATE&redirect_uri='
+                                + redirect_url
+                                + '&loginTmpCode=' + loginTmpCode;
+                        }
+                    }
+                };
+                if (typeof window.addEventListener !== 'undefined') {
+                    window.addEventListener('message', hanndleMessage, false);
+                } else if (typeof window.attachEvent !== 'undefined') {
+                    window.attachEvent('onmessage', hanndleMessage);
+                }
+
+            </script>
+        </form>
+    </div>
+    <div class="form-container left-content-container">
+        <form action="/" method="post" autocomplete="off">
+            {% csrf_token %}
+            <h1>修改密码</h1>
+            <span>新密码8至30位长度，要求包含大小写字母及数字。</span>
+            <input type="text" id="username" name="username" placeholder="账号，格式：abc\lisi、lisi、lisi@abc.com">
+            <input type="password" id="old_password" name="old_password" placeholder="旧密码">
+            <input type="password" id="new_password" name="new_password" placeholder="新密码">
+            <input type="password" id="ensure_password" name="ensure_password" placeholder="再次确认新密码">
+            <p></p>
+            <button id="btn_modify" type="submit">提交</button>
+        </form>
+    </div>
+    <div class="overlay-container">
+        <div class="overlay">
+            <div class="overlay-panel overlay-left">
+                <h1>我要修改密码</h1>
+                <p>记得自己的旧密码，需要自行修改</p>
+                <p>⬇️点它</p>
+                <button class="ghost" id="modifyPwd">自助修改密码</button>
+            </div>
+            <div class="overlay-panel overlay-right">
+                <h1>忘记密码或被锁</h1>
+                <p>如果密码己遗忘，可点击[扫码验证]，使用{{ scan_app }}扫码验证身份信息后进行重置</p>
+                <p>⬇️点它</p>
+                <button class="ghost" id="scanCode">扫码验证</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="{% static 'js/dmaku.js' %}"></script>
+<script>
+    BtnClick("#btn_modify", 'modify', {{ unsecpwd|safe }})
+</script>
+</body>
+</html>

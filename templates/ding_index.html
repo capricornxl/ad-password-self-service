@@ -1,118 +1,81 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>密码自助服务</title>
-    <link type="text/css" rel="stylesheet" href="{% static 'css/login.css' %}">
-    <script type="text/javascript" src="{% static 'js/jquery-1.8.3.min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/check.js' %}"></script>
-    <script src="https://g.alicdn.com/dingding/dinglogin/0.0.5/ddLogin.js"></script>
-</head>
-<body>
-    <div class="pagewrap">
-        <div class="main">
-            <div class="header">
-
-            </div>
-            <div class="content">
-                <div class="con_left" >
-                    <div style="margin: 0 auto; width:100%; height: 200px; line-height: 200px;" align="center">
-                        <p style="margin: 0 auto; color: #fdfdfe; font-size: 36px; width:100%; ">「域账号或邮箱」<small>密码自助平台</small></p>
-                    </div>
-                     <div style="margin: 0 auto; width:400px; height: 240px;">
-                         <p style="margin: 0 auto; color: #fdfdfe; font-size: 16px; width:100%;
-">提示：新密码要求满足8至30位长度(不包含空格)，至少包含大小写字母及数字组成。</p>
-                         <p style="margin: 0 auto; color: #fdfdfe; font-size: 16px; width:100%;
-">如果密码己遗忘，可点击[重置/解锁]，使用钉钉扫描验证后直接重置密码。</p>
-                    </div>
-                </div>
-                <div class="con_right">
-                    <div class="con_r_top">
-                        <a href="javascript:" class="right" style="color: rgb(51, 51, 51); border-bottom-width: 2px; border-bottom-style: solid; border-bottom-color: rgb(46, 85, 142);">修改密码</a>
-                        <a href="javascript:" class="left" style="color: rgb(153, 153, 153); border-bottom-width: 2px; border-bottom-style: solid; border-bottom-color: rgb(222, 222, 222);">重置/解锁</a>
-                    </div>
-                    <ul>
-                        <li class="con_r_right" style="display: block;">
-                           <form name="modifypwd" method="post" action="" autocomplete="off">
-                               {% csrf_token %}
-                                <div class="user">
-                                    <div><span class="user-icon"></span>
-                                        <input type="text" id="username" name="username" placeholder="格式：abc\lisi、lisi、lisi@abc.com" value="">
-                                    </div>
-                                    <div><span class="mima-icon"></span>
-                                        <input type="password" id="old_password" name="old_password"
-                                               placeholder=" 输入旧密码" value="">
-                                    </div>
-                                    <div><span class="mima-icon"></span>
-                                        <input type="password" id="new_password" name="new_password"
-                                               placeholder=" 输入新密码" value="">
-                                    </div>
-                                    <div><span class="mima-icon"></span>
-                                        <input type="password" id="ensure_password" name="ensure_password"
-                                               placeholder=" 再次输入新密码" value="">
-                                    </div>
-                                </div><br>
-                               <button id="btn_modify" type="submit">修改密码</button>
-                            </form>
-                        </li>
-
-                        <li class="con_r_left" style="display: none;">
-                            <div style="margin-top: -30px" class="erweima">
-                                <div style="width: 300px; height: 300px; margin: 0 auto" id="ding_code"></div>
-                                <script type="text/javascript">
-                                    // 构造钉钉登录
-                                    // 扫描之后需要跳转的域名，填写自己的修改密码的域名地址http或https
-                                    var home_url = "{{ home_url }}";
-                                    // 钉钉移动应用接入ID
-                                    var app_id = "{{ app_id }}";
-                                    var redirect_url = encodeURIComponent(home_url + '/callbackCheck');
-                                    var goto = encodeURIComponent('https://oapi.dingtalk.com/connect/qrconnect?appid='
-                                        + app_id
-                                        + '&response_type=code&scope=snsapi_login&state=STATE&redirect_uri='
-                                        + redirect_url);
-                                    var obj = DDLogin({
-                                        id: "ding_code",
-                                        goto: goto,
-                                        style: "border:none;background-color:#FFFFFF;",
-                                        width: "300",
-                                        height: "300"
-                                    });
-                                    var hanndleMessage = function (event) {
-                                        var origin = event.origin;
-                                        console.log("origin", event.origin)
-                                        //判断是否来自ddLogin扫码事件。
-                                        if (origin === "https://login.dingtalk.com") {
-                                            var loginTmpCode = event.data;
-                                            console.log("loginTmpCode", loginTmpCode);
-                                            if (loginTmpCode) {
-                                                //拿到loginTmpCode后就可以在这里构造跳转链接进行跳转了
-                                                location.href = 'https://oapi.dingtalk.com/connect/oauth2/sns_authorize?appid='
-                                                    + app_id
-                                                    + '&response_type=code&scope=snsapi_login&state=STATE&redirect_uri='
-                                                    + redirect_url
-                                                    + '&loginTmpCode=' + loginTmpCode;
-                                            }
-                                        }
-                                    };
-                                    if (typeof window.addEventListener !== 'undefined') {
-                                        window.addEventListener('message', hanndleMessage, false);
-                                    } else if (typeof window.attachEvent !== 'undefined') {
-                                        window.attachEvent('onmessage', hanndleMessage);
-                                    }
-                                </script>
-                            </div>
-                            <div style="height: 70px; margin-top: -30px">
-                                <p style="font-size: 18px; color: #2e558e" align="center">钉钉扫码验证用户信息</p>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
-<script type="text/javascript">
-window.onload=function() {
-if (!!window.ActiveXObject || "ActiveXObject" in window)
-  alert("您当前使用的浏览器为IE或IE内核，因为IE各种体验问题，本网站不对IE兼容。\n为能正常使用密码自助修改服务，请更换谷歌、火狐等非IE核心的浏览器。\n如果是360、Maxthon等这类双核心浏览器，请切换至[极速模式]亦可。")
-}
-</script>
-</body></html>
+{% block head %}
+    <script type="text/javascript" src="{% static 'js/ddLogin-0.0.5.js' %}"></script>
+{% endblock %}
+{% block right-content %}
+    <form action="" name="ding_qrcode">
+        <div style="width: 300px; height: 300px; margin: 0 auto" id="ding_code"></div>
+        <p>使用钉钉扫一扫进行登录验证</p>
+        <script type="text/javascript">
+            // 构造钉钉登录二唯码
+            var home_url = "{{ home_url }}";
+            var app_id = "{{ app_id }}";
+            var redirect_url = encodeURIComponent(home_url + '/callbackCheck');
+            var goto = encodeURIComponent('https://oapi.dingtalk.com/connect/qrconnect?appid='
+                + app_id
+                + '&response_type=code&scope=snsapi_login&state=STATE&redirect_uri='
+                + redirect_url);
+            console.log(goto)
+            DDLogin({
+                id: "ding_code",
+                goto: goto,
+                style: "border:none;background-color:#FFFFFF;",
+                width: "300",
+                height: "300"
+            });
+            // 扫码后的操作
+            var hanndleMessage = function (event) {
+                var origin = event.origin;
+                console.log("origin", event.origin)
+                if (origin === "https://login.dingtalk.com") {
+                    var loginTmpCode = event.data;
+                    console.log("loginTmpCode", loginTmpCode);
+                    if (loginTmpCode) {
+                        //拿到loginTmpCode后就可以在这里构造跳转链接进行跳转了
+                        location.href = 'https://oapi.dingtalk.com/connect/oauth2/sns_authorize?appid='
+                            + app_id
+                            + '&response_type=code&scope=snsapi_login&state=STATE&redirect_uri='
+                            + redirect_url
+                            + '&loginTmpCode=' + loginTmpCode;
+                    }
+                }
+            };
+            if (typeof window.addEventListener !== 'undefined') {
+                window.addEventListener('message', hanndleMessage, false);
+            } else if (typeof window.attachEvent !== 'undefined') {
+                window.attachEvent('onmessage', hanndleMessage);
+            }
+        </script>
+    </form>
+{% endblock %}
+{% block left-content %}
+    <form action="/" method="post" autocomplete="off">
+        {% csrf_token %}
+        <h1>修改密码</h1>
+        <span>新密码8至30位长度，要求包含大小写字母及数字。</span>
+        <input type="text" id="username" name="username" placeholder="账号，格式：abc\lisi、lisi、lisi@abc.com">
+        <input type="password" id="old_password" name="old_password" placeholder="旧密码">
+        <input type="password" id="new_password" name="new_password" placeholder="新密码">
+        <input type="password" id="ensure_password" name="ensure_password" placeholder="再次确认新密码">
+        <p></p>
+        <button id="btn_modify" type="submit">提交</button>
+    </form>
+{% endblock %}
+{% block left-overlay %}
+    <h1>我要修改密码</h1>
+    <p>记得自己的旧密码，需要自行修改</p>
+    <p>⬇️点它</p>
+    <button class="ghost" id="modifyPwd">自助修改密码</button>
+{% endblock %}
+{% block right-overlay %}
+    <h1>忘记密码或被锁</h1>
+    <p>如果密码己遗忘，可点击[扫码验证]，使用{{ scan_app }}扫码验证身份信息后进行重置</p>
+    <p>⬇️点它</p>
+    <button class="ghost" id="scanCode">扫码验证</button>
+{% endblock %}
+{% block footer %}
+    <script>
+        BtnClick("#btn_modify", 'modify', {{ unsecpwd|safe }})
+    </script>
+{% endblock %}

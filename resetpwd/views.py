@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 from django.shortcuts import render
@@ -6,31 +7,35 @@ from ldap3.core.exceptions import LDAPException
 from utils.format_username import format2username, get_user_is_active
 from .form import CheckForm
 from .utils import code_2_user_info, crypto_id_2_user_info, ops_account, crypto_id_2_user_id, crypto_user_id_2_cookie
+from django.conf import settings
 APP_ENV = os.getenv('APP_ENV')
 if APP_ENV == 'dev':
-    from conf.local_settings_dev import SCAN_CODE_TYPE, DING_MO_APP_ID, WEWORK_CORP_ID, WEWORK_AGENT_ID, HOME_URL
+    from conf.local_settings_dev import SCAN_CODE_TYPE, DING_MO_APP_ID, WEWORK_CORP_ID, WEWORK_AGENT_ID, HOME_URL, DING_CORP_ID
 else:
-    from conf.local_settings import SCAN_CODE_TYPE, DING_MO_APP_ID, WEWORK_CORP_ID, WEWORK_AGENT_ID, HOME_URL
+    from conf.local_settings import SCAN_CODE_TYPE, DING_MO_APP_ID, WEWORK_CORP_ID, WEWORK_AGENT_ID, HOME_URL, DING_CORP_ID
 
 
-msg_template = 'messages.html'
+msg_template = 'messages.v1.html'
 logger = logging.getLogger('django')
 
 
 class PARAMS(object):
     if SCAN_CODE_TYPE == 'DING':
+        corp_id = DING_CORP_ID
         app_id = DING_MO_APP_ID
         agent_id = None
         SCAN_APP = '钉钉'
         from utils.dingding_ops import DingDingOps
         ops = DingDingOps()
     elif SCAN_CODE_TYPE == 'WEWORK':
+        corp_id = None
         app_id = WEWORK_CORP_ID
         agent_id = WEWORK_AGENT_ID
         SCAN_APP = '微信'
         from utils.wework_ops import WeWorkOps
         ops = WeWorkOps()
     else:
+        corp_id = None
         app_id = WEWORK_CORP_ID
         agent_id = WEWORK_AGENT_ID
         SCAN_APP = '微信'
@@ -56,16 +61,22 @@ def index(request):
     :return:
     """
     home_url = '%s://%s' % (request.scheme, HOME_URL)
+    corp_id = scan_params.corp_id
     app_id = scan_params.app_id
     agent_id = scan_params.agent_id
+    scan_app = scan_params.SCAN_APP
+    unsecpwd = settings.UN_SEC_PASSWORD
     if request.method == 'GET' and SCAN_CODE_TYPE == 'DING':
         return render(request, 'ding_index.html', locals())
     elif request.method == 'GET' and SCAN_CODE_TYPE == 'WEWORK':
-        return render(request, 'we_index.html', locals())
+        return render(request, 'we_index.v1.html', locals())
     elif request.method == 'GET' and SCAN_CODE_TYPE == 'FEISHU':
-        return render(request, 'feishu_index.html', locals())
+        return render(request, 'index.v1.html', locals())
     else:
-        logger.error('[异常]  请求方法：%s，请求路径：%s' % (request.method, request.path))
+        logger.error('[异常]  请求方法：%s，请求路径%s' % (request.method, request.path))
+    #
+    # if request.method == 'GET':
+    #     return render(request, 'index.v1.html', locals())
 
     if request.method == 'POST':
         # 对前端提交的数据进行二次验证，防止恶意提交简单密码或篡改账号。
@@ -167,7 +178,7 @@ def reset_pwd_by_callback(request):
             context = {
                 'username': username,
             }
-            return render(request, 'resetPassword.html', context)
+            return render(request, 'resetPassword.v1.html', context)
         else:
             context = {
                 'msg': "{}，您好，企业{}中未能找到您账号的邮箱配置，请联系HR完善信息。".format(user_info.get('name'), scan_params.SCAN_APP),
@@ -217,7 +228,7 @@ def unlock_account(request):
         context = {
             'username': username,
         }
-        return render(request, 'resetPassword.html', context)
+        return render(request, 'resetPassword.v1.html', context)
 
     elif request.method == 'POST':
         _status, user_info = crypto_id_2_user_info(_ops, request, msg_template, home_url, scan_params.SCAN_APP)

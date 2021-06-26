@@ -45,15 +45,19 @@ Redis的安装和配置方法请自行百度，比较简单
 + Uwsgi
 
 ## 截图
-![截图1](screenshot/Snipaste_2019-07-15_20-05-49.jpg)
+![截图1](screenshot/111.png)
 
 ### 钉钉
-![截图2](screenshot/Snipaste_2019-07-15_20-06-14.jpg)
+![截图2](screenshot/112.png)
 
 ### 微信
-![截图11](screenshot/微扫码11.png)
-![截图12](screenshot/微扫码12.png)
+![截图11](screenshot/115.png)
+![截图11](screenshot/116.png)
 
+
+#### 扫码成功之后：
+![截图15](screenshot/113.png)
+![截图15](screenshot/114.png)
 
 ## 钉钉必要条件：
 #### 创建企业内部应用
@@ -67,6 +71,7 @@ Redis的安装和配置方法请自行百度，比较简单
 ![截图4](screenshot/h5微应用--开发管理.png)
 
 ![截图5](screenshot/h5微应用--权限管理.png)
+
 
 #### 移动接入应用--登录权限：
 >登录中开启扫码登录，配置回调域名：“https://pwd.abc.com/callbackCheck”
@@ -88,6 +93,10 @@ Redis的安装和配置方法请自行百度，比较简单
 
 ![截图10](screenshot/微扫码16.png)
 
+
+## 飞书必要条件：
+ * 开放平台-->创建应-->网页开启-->配置回调url
+> 飞书接口项目地址：https://github.com/larksuite/feishu  感谢大佬，节省了不少时间。
 
 ## 使用脚本自动部署：
 使用脚本自动快速部署，只适合Centos，其它发行版本的Linux请自行修改相关命令。
