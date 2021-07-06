@@ -14,7 +14,6 @@ if APP_ENV == 'dev':
 else:
     from conf.local_settings import SCAN_CODE_TYPE, DING_MO_APP_ID, WEWORK_CORP_ID, WEWORK_AGENT_ID, HOME_URL, DING_CORP_ID
 
-
 msg_template = 'messages.v1.html'
 logger = logging.getLogger('django')
 
