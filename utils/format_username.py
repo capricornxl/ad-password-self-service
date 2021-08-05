@@ -20,13 +20,13 @@ def format2username(account):
         domain_compile = re.compile(r'(.*)\\(.*)')
 
         if re.fullmatch(mail_compile, account):
-            return re.fullmatch(mail_compile, account).group(1)
+            return True, re.fullmatch(mail_compile, account).group(1)
         elif re.fullmatch(domain_compile, account):
-            return re.fullmatch(domain_compile, account).group(2)
+            return True, re.fullmatch(domain_compile, account).group(2)
         else:
-            return account.lower()
+            return True, account.lower()
     else:
-        raise NameError("输入的账号不能为空..")
+        return False, NameError("{}格式化失败，注意：account用户账号是邮箱或DOMAIN\\username或username格式！".format(account))
 
 
 def get_user_is_active(user_info):

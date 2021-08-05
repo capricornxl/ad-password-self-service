@@ -44,13 +44,6 @@ class PARAMS(object):
 
 scan_params = PARAMS()
 _ops = scan_params.ops
-# try:
-#     AdOps() = AdOps()
-#     print("初始化Active Directory连接成功...")
-# except Exception as e:
-#     AdOps() = LDAPException("连接域控制器失败，无法访问到LDAP")
-#     print("初始化Active Directory连接失败...")
-#     print(str(e))
 
 
 def index(request):
@@ -95,7 +88,14 @@ def index(request):
             }
             return render(request, msg_template, context)
         # 格式化用户名
-        username = format2username(username)
+        _, username = format2username(username)
+        if _ is False:
+            context = {
+                'msg': username,
+                'button_click': "window.location.href='%s'" % home_url,
+                'button_display': "返回主页"
+            }
+            return render(request, msg_template, context)
         # 检测账号状态
         auth_status, auth_result = AdOps().ad_auth_user(username=username, password=old_password)
         if not auth_status:
@@ -133,17 +133,18 @@ def callback_check(request):
             'button_display': "返回主页"
         }
         return render(request, msg_template, context)
-    print("code: {}" .format(code))
     try:
         _status, user_id, user_info = code_2_user_info(_ops, request, msg_template, home_url, code)
+        print(user_info)
         if not _status:
             return render(request, msg_template, user_id)
         # 账号是否是激活的
         if get_user_is_active(user_info):
             return crypto_user_id_2_cookie(user_id)
+        # 否则账号不存在或未激活
         else:
             context = {
-                'msg': '[%s]在钉钉中未激活或可能己离职' % format2username(user_info.get('name')),
+                'msg': '当前扫码的用户在钉钉中未激活或可能己离职，用户信息如下：%s' % user_info,
                 'button_click': "window.location.href='%s'" % home_url,
                 'button_display': "返回主页"
             }
@@ -171,7 +172,15 @@ def reset_pwd_by_callback(request):
         if not _status:
             return render(request, msg_template, user_info)
         # 通过user_id拿到用户信息，并格式化为username
-        username = format2username(user_info.get('email'))
+        # 格式化用户名
+        _, username = format2username(user_info.get('email'))
+        if _ is False:
+            context = {
+                'msg': username,
+                'button_click': "window.location.href='%s'" % home_url,
+                'button_display': "返回主页"
+            }
+            return render(request, msg_template, context)
         # 如果邮箱能提取到，则格式化之后，提取出账号提交到前端绑定
         if username:
             context = {
@@ -193,7 +202,15 @@ def reset_pwd_by_callback(request):
             _status, user_info = crypto_id_2_user_info(_ops, request, msg_template, home_url, scan_params.SCAN_APP)
             if not _status:
                 return render(request, msg_template, user_info)
-            username = format2username(user_info.get('email'))
+            # 格式化用户名
+            _, username = format2username(user_info.get('email'))
+            if _ is False:
+                context = {
+                    'msg': username,
+                    'button_click': "window.location.href='%s'" % home_url,
+                    'button_display': "返回主页"
+                }
+                return render(request, msg_template, context)
             return ops_account(ad_ops=AdOps(), request=request, msg_template=msg_template, home_url=home_url, username=username, new_password=_new_password)
         except Exception as reset_e:
             context = {
@@ -223,7 +240,15 @@ def unlock_account(request):
         _status, user_info = crypto_id_2_user_info(_ops, request, msg_template, home_url, scan_params.SCAN_APP)
         if not _status:
             return render(request, msg_template, user_info)
-        username = format2username(user_info.get('email'))
+        # 格式化用户名
+        _, username = format2username(user_info.get('email'))
+        if _ is False:
+            context = {
+                'msg': username,
+                'button_click': "window.location.href='%s'" % home_url,
+                'button_display': "返回主页"
+            }
+            return render(request, msg_template, context)
         context = {
             'username': username,
         }
@@ -233,7 +258,15 @@ def unlock_account(request):
         _status, user_info = crypto_id_2_user_info(_ops, request, msg_template, home_url, scan_params.SCAN_APP)
         if not _status:
             return render(request, msg_template, user_info)
-        username = format2username(user_info.get('email'))
+        # 格式化用户名
+        _, username = format2username(user_info.get('email'))
+        if _ is False:
+            context = {
+                'msg': username,
+                'button_click': "window.location.href='%s'" % home_url,
+                'button_display': "返回主页"
+            }
+            return render(request, msg_template, context)
         return ops_account(AdOps(), request, msg_template, home_url, username, None)
     else:
         context = {
