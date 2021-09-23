@@ -68,7 +68,7 @@ done
 
 echo "======================================================================="
 while :; do echo
-    read -p "请输入密码自助平台使用的端口: " PWD_SELF_SERVICE_PORT
+    read -p "请输入密码自助平台使用的端口(不要和Nginx一样): " PWD_SELF_SERVICE_PORT
     check_port ${PWD_SELF_SERVICE_PORT}
     if [[ $? -ne 0 ]]; then
       echo "---输入的端口有误，请重新输入。"
@@ -79,7 +79,7 @@ done
 
 echo "======================================================================="
 while :; do echo
-    read -p "请输入密码自助平台使用域名，例如：pwd.abc.com: " PWD_SELF_SERVICE_DOMAIN
+    read -p "请输入密码自助平台使用域名，例如：pwd.abc.com（不需要加http://或https://） " PWD_SELF_SERVICE_DOMAIN
     check_domain ${PWD_SELF_SERVICE_DOMAIN}
     if [[ $? -ne 0 ]]; then
       echo "---输入的域名格式有误，请重新输入。"
@@ -90,6 +90,8 @@ done
 
 ##当前脚本的绝对路径
 SHELL_FOLDER=$(dirname $(readlink -f "$0"))
+
+
 
 echo "关闭SELINUX"
 sudo setenforce 0
@@ -138,31 +140,32 @@ fi
 
 ##install python3
 ##如果之前用此脚本安装过python3，后续就不会再次安装。
-python_ver='3.8.9'
-if [[ -f "/usr/share/python-${python_ver}/bin/python3" ]]
+PYTHON_VER='3.8.9'
+PYTHON_INSTALL_DIR=/usr/share/python-${PYTHON_VER}
+if [[ -f "${PYTHON_INSTALL_DIR}/bin/python3" ]]
 then
     echo "己发现Python3，将不会安装。"
 else
-    if [[ -f "Python-${python_ver}.tar.xz" ]]
+    if [[ -f "Python-${PYTHON_VER}.tar.xz" ]]
     then
-        echo "将安装Python${python_ver}"
-        tar xf Python-${python_ver}.tar.xz
-        cd Python-${python_ver}
-        sudo ./configure --prefix=/usr/share/python-${python_ver} && make && make install
+        echo "将安装Python${PYTHON_VER}"
+        tar xf Python-${PYTHON_VER}.tar.xz
+        cd Python-${PYTHON_VER}
+        sudo ./configure --prefix=${PYTHON_INSTALL_DIR} && make && make install
     else
-        echo "脚本目录下没有发现Python${python_ver}.tar.xz，将会下载python ${python_ver}"
-        sudo wget https://www.python.org/ftp/python/${python_ver}/Python-${python_ver}.tar.xz
-        tar xf Python-${python_ver}.tar.xz
-        cd Python-${python_ver}
-        sudo ./configure --prefix=/usr/share/python-${python_ver} && make && make install
+        echo "脚本目录下没有发现Python${PYTHON_VER}.tar.xz，将会下载python ${PYTHON_VER}"
+        sudo wget https://www.python.org/ftp/python/${PYTHON_VER}/Python-${PYTHON_VER}.tar.xz
+        tar xf Python-${PYTHON_VER}.tar.xz
+        cd Python-${PYTHON_VER}
+        sudo ./configure --prefix=${PYTHON_INSTALL_DIR} && make && make install
     fi
 
     if [[ $? -eq 0 ]]
     then
       echo "创建python3和pip3的软件链接"
       cd ${SHELL_FOLDER}
-      sudo ln -svf /usr/share/python-${python_ver}/bin/python3 /usr/bin/python3
-      sudo ln -svf /usr/share/python-${python_ver}/bin/pip3 /usr/bin/pip3
+      sudo ln -svf ${PYTHON_INSTALL_DIR}/bin/python3 /usr/bin/python3
+      sudo ln -svf ${PYTHON_INSTALL_DIR}/bin/pip3 /usr/bin/pip3
       echo "======================================================================="
       echo "Python3 安装成功！"
       echo "======================================================================="
@@ -204,6 +207,8 @@ fi
 ##处理配置文件
 echo "======================================================================="
 echo "处理uwsgi.ini配置文件"
+CPU_NUM=$(cat /proc/cpuinfo | grep processor | wc -l)
+sed -i "s@CPU_NUM@${CPU_NUM}@g" ${SHELL_FOLDER}/uwsgi.ini
 sed -i "s@PWD_SELF_SERVICE_HOME@${SHELL_FOLDER}@g" ${SHELL_FOLDER}/uwsgi.ini
 sed -i "s@PWD_SELF_SERVICE_IP@${PWD_SELF_SERVICE_IP}@g" ${SHELL_FOLDER}/uwsgi.ini
 sed -i "s@PWD_SELF_SERVICE_PORT@${PWD_SELF_SERVICE_PORT}@g" ${SHELL_FOLDER}/uwsgi.ini
@@ -211,6 +216,7 @@ echo "处理uwsgi.ini配置文件完成"
 echo
 echo "处理uwsgiserver启动脚本"
 sed -i "s@PWD_SELF_SERVICE_HOME@${SHELL_FOLDER}@g" ${SHELL_FOLDER}/uwsgiserver
+sed -i "s@PYTHON_INSTALL_DIR@${PYTHON_INSTALL_DIR}@g" ${SHELL_FOLDER}/uwsgiserver
 alias cp='cp'
 cp -f ${SHELL_FOLDER}/uwsgiserver /etc/init.d/uwsgiserver
 chmod +x /etc/init.d/uwsgiserver

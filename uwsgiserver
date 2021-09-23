@@ -6,7 +6,7 @@
 # processname: uwsgiserver
 
 INI="PWD_SELF_SERVICE_HOME/uwsgi.ini"
-UWSGI="/usr/share/python-3.6.9/bin/uwsgi"
+UWSGI="PYTHON_INSTALL_DIR/bin/uwsgi"
 PSID="ps aux | grep "uwsgi"| grep -v "grep" | wc -l"
 
 if [ ! -n "$1" ]
