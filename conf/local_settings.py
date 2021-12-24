@@ -7,7 +7,8 @@
 # AD主机，可以是IP或主机域名，例如可以是: abc.com或172.16.122.1
 AD_HOST = r'修改成自己的'
 
-# AD域控的DOMAIN名，例如：abc
+# AD域控的DOMAIN，例如：比如你的域名是abc.com，那么这里的AD_DOMAIN就是：abc
+# NTLM认证必须是domain\username
 AD_DOMAIN = r'修改成自己的'
 
 # 用于登录AD做用户信息处理的账号，需要有修改用户账号密码或信息的权限。

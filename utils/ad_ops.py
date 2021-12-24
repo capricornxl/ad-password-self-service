@@ -45,7 +45,8 @@ class AdOps(object):
         """
         self.use_ssl = use_ssl
         self.port = port
-        self.domain = domain
+        # 如果doamin\\user中doamin部分被写成域名格式， 只提取DOMAIN部分
+        self.domain = domain.split('.')[0] if domain is not None else None
         self.user = user
         self.password = password
         self.authentication = authentication
