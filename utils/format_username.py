@@ -15,7 +15,11 @@ def format2username(account):
     :param account 用户账号可以是邮箱、DOMAIN\\username、username格式。
     :return: username
     """
-    if account:
+
+    if account is None:
+        return False, NameError(
+            "传入的用户账号为空！".format(account))
+    try:
         mail_compile = re.compile(r'(.*)@(.*)')
         domain_compile = re.compile(r'(.*)\\(.*)')
 
@@ -25,8 +29,8 @@ def format2username(account):
             return True, re.fullmatch(domain_compile, account).group(2)
         else:
             return True, account.lower()
-    else:
-        return False, NameError("{}格式化失败，注意：account用户账号是邮箱或DOMAIN\\username或username格式！".format(account))
+    except Exception as e:
+        return False, NameError("格式化失败，注意：account用户账号是邮箱或DOMAIN\\username或username格式，错误信息[{}]".format(account, e))
 
 
 def get_user_is_active(user_info):

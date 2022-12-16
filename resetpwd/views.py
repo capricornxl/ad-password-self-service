@@ -117,7 +117,7 @@ def index(request):
 
 def callback_check(request):
     """
-    钉钉扫码回调数据之后，将用户账号在AD中进行验证，如果通过，则返回钉钉中取出用户的union_id
+    扫码回调数据之后，将用户账号在AD中进行验证，如果通过，则返回钉钉中取出用户的union_id
     :param request:
     :return:
     """
@@ -133,18 +133,20 @@ def callback_check(request):
             'button_display': "返回主页"
         }
         return render(request, msg_template, context)
+
+    print('code ----- ', code)
     try:
-        _status, user_id, user_info = code_2_user_info(_ops, request, msg_template, home_url, code)
-        print(user_info)
+        _status, user_id, user_info = code_2_user_info(_ops, home_url, code)
         if not _status:
             return render(request, msg_template, user_id)
         # 账号是否是激活的
         if get_user_is_active(user_info):
             return crypto_user_id_2_cookie(user_id)
+
         # 否则账号不存在或未激活
         else:
             context = {
-                'msg': '当前扫码的用户在钉钉中未激活或可能己离职，用户信息如下：%s' % user_info,
+                'msg': '当前扫码的用户未激活或可能己离职，用户信息如下：%s' % user_info,
                 'button_click': "window.location.href='%s'" % home_url,
                 'button_display': "返回主页"
             }

@@ -84,3 +84,25 @@ class DingDingOps(AppKeyClient):
         except (KeyError, IndexError) as k_error:
             return False, 'get_user_detail_by_user_id: %s' % str(k_error)
 
+    def get_user_detail(self, code, home_url):
+        """
+        临时授权码换取userinfo
+        """
+        _status, user_id = self.get_user_id_by_code(code)
+        # 判断 user_id 在本企业钉钉/微信中是否存在
+        if not _status:
+            context = {
+                'msg': '获取userid失败，错误信息：{}'.format(user_id),
+                'button_click': "window.location.href='%s'" % home_url,
+                'button_display': "返回主页"
+            }
+            return False, context, user_id
+        detail_status, user_info = self.get_user_detail_by_user_id(user_id)
+        if not detail_status:
+            context = {
+                'msg': '获取用户信息失败，错误信息：{}'.format(user_info),
+                'button_click': "window.location.href='%s'" % home_url,
+                'button_display': "返回主页"
+            }
+            return False, context, user_info
+        return True, user_id, user_info

@@ -24,7 +24,15 @@ else:
 logger = logging.getLogger('django')
 
 
-def code_2_user_info(ops, request, msg_template, home_url, code):
+def code_2_user_info(ops, home_url, code):
+    """
+    临时授权码换取userinfo
+    """
+    _, s, e = ops.get_user_detail(code=code, home_url=home_url)
+    return _, s, e
+
+
+def code_2_user_info_with_oauth2(ops, request, msg_template, home_url, code):
     """
     临时授权码换取userinfo
     """
@@ -32,7 +40,7 @@ def code_2_user_info(ops, request, msg_template, home_url, code):
     # 判断 user_id 在本企业钉钉/微信中是否存在
     if not _status:
         context = {
-            'msg': '获取钉钉userid失败，错误信息：{}'.format(user_id),
+            'msg': '获取userid失败，错误信息：{}'.format(user_id),
             'button_click': "window.location.href='%s'" % home_url,
             'button_display': "返回主页"
         }
@@ -40,7 +48,7 @@ def code_2_user_info(ops, request, msg_template, home_url, code):
     detail_status, user_info = ops.get_user_detail_by_user_id(user_id)
     if not detail_status:
         context = {
-            'msg': '获取钉钉用户信息失败，错误信息：{}'.format(user_info),
+            'msg': '获取用户信息失败，错误信息：{}'.format(user_info),
             'button_click': "window.location.href='%s'" % home_url,
             'button_display': "返回主页"
         }

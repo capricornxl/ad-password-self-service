@@ -20,6 +20,10 @@ else:
     from conf.local_settings import *
 
 CORP_API_TYPE = {
+    'GET_USER_TICKET_OAUTH2': ['/cgi-bin/auth/getuserinfo?access_token=ACCESS_TOKEN', 'GET'],
+    'GET_USER_INFO_OAUTH2': ['/cgi-bin/auth/getuserdetail?access_token=ACCESS_TOKEN', 'POST'],
+
+
     'GET_ACCESS_TOKEN': ['/cgi-bin/gettoken', 'GET'],
     'USER_CREATE': ['/cgi-bin/user/create?access_token=ACCESS_TOKEN', 'POST'],
     'USER_GET': ['/cgi-bin/user/get?access_token=ACCESS_TOKEN', 'GET'],
@@ -138,6 +142,66 @@ class WeWorkOps(AbstractApi):
             return False, "get_user_detail_by_user_id: {}-{}".format(e.errCode, e.errMsg)
         except Exception as e:
             return False, "get_user_detail_by_user_id: {}".format(e)
+
+    def get_user_ticket_by_code_with_oauth2(self, code):
+        try:
+            return True, self.http_call(
+                CORP_API_TYPE['GET_USER_TICKET_OAUTH2'],
+                {
+                    'code': code,
+                })
+        except ApiException as e:
+            return False, "get_user_ticket_by_code_with_oauth2: {}-{}".format(e.errCode, e.errMsg)
+        except Exception as e:
+            return False, "get_user_ticket_by_code_with_oauth2: {}".format(e)
+
+    def get_user_info_by_ticket_with_oauth2(self, user_ticket):
+        try:
+            return True, self.http_call(
+                CORP_API_TYPE['GET_USER_TICKET_OAUTH2'],
+                {
+                    'user_ticket': user_ticket
+                })
+        except ApiException as e:
+            return False, "get_user_info_by_ticket_with_oauth2: {}-{}".format(e.errCode, e.errMsg)
+        except Exception as e:
+            return False, "get_user_info_by_ticket_with_oauth2: {}".format(e)
+
+    def get_user_detail(self, code, home_url):
+        """
+        临时授权码换取userinfo
+        """
+        _status, ticket_data = self.get_user_ticket_by_code_with_oauth2(code)
+        print('ticket_data ----------- ', ticket_data)
+        # 判断 user_ticket 是否存在
+        if not _status:
+            context = {
+                'msg': '获取userid失败，错误信息：{}'.format(ticket_data),
+                'button_click': "window.location.href='%s'" % home_url,
+                'button_display': "返回主页"
+            }
+            return False, context, ticket_data
+
+        user_id = ticket_data.get('userid')
+        if ticket_data.get('user_ticket') is None:
+            context = {
+                'msg': '获取用户Ticket失败，当前扫码用户[{}]可能未加入企业！'.format(user_id),
+                'button_click': "window.location.href='%s'" % home_url,
+                'button_display': "返回主页"
+            }
+            return False, context, user_id
+
+        # 通过user_ticket获取企业微信用户详情信息
+        detail_status, user_info = self.get_user_info_by_ticket_with_oauth2(ticket_data.get('user_ticket'))
+        print(user_info)
+        if not detail_status:
+            context = {
+                'msg': '获取用户信息失败，错误信息：{}'.format(user_id),
+                'button_click': "window.location.href='%s'" % home_url,
+                'button_display': "返回主页"
+            }
+            return False, context
+        return True, user_id, user_info
 
 
 if __name__ == '__main__':
