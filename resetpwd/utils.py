@@ -24,7 +24,7 @@ else:
 logger = logging.getLogger('django')
 
 
-def code_2_user_info(ops, home_url, code):
+def code_2_user_detail(ops, home_url, code):
     """
     临时授权码换取userinfo
     """
@@ -65,7 +65,7 @@ def crypto_id_2_user_info(ops, request, msg_template, home_url, scan_app_tag):
         if not crypto_tmp_id:
             logger.error('[异常]  请求方法：%s，请求路径：%s，未能拿到TmpID或会话己超时。' % (request.method, request.path))
             context = {
-                'msg': "会话己超时，请重新扫码验证用户信息。",
+                'msg': "会话己超时，请重新验证用户信息。",
                 'button_click': "window.location.href='%s'" % home_url,
                 'button_display': "返回主页"
             }

@@ -9,6 +9,15 @@
 import re
 
 
+def get_email_from_userinfo(user_info):
+    if user_info.get('email') not in ['', None]:
+        return True, user_info.get('email')
+    elif user_info.get('biz_mail') not in ['', None]:
+        return True, user_info.get('biz_mail')
+    else:
+        return False, "当前用户的邮箱或企业邮箱均没配置，请先完善个人信息！"
+
+
 def format2username(account):
     """
     格式化账号，统一输出为用户名格式

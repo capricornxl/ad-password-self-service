@@ -81,6 +81,34 @@ a {
     text-align: center;
 }
 
+
+.form-container a {
+    border-radius: 20px;
+    border: 1px solid #1b83d8;
+    background: #1b83d8;
+    color: #fff;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 12px 45px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: transform 80ms ease-in;
+    cursor: pointer;
+}
+
+.form-container a:active {
+    transform: scale(.95);
+}
+
+.form-container a:focus {
+    outline: none;
+}
+
+.form-container a.ghost {
+    background: transparent;
+    border-color: #fff;
+}
+
 .social-container {
     margin: 20px 0;
 }
@@ -135,6 +163,8 @@ button.ghost {
     background: transparent;
     border-color: #fff;
 }
+
+
 
 .form-container {
     position: absolute;
@@ -193,6 +223,35 @@ button.ghost {
     transform: translateY(0);
     transition: transform .6s ease-in-out;
 }
+
+
+.overlay-container a {
+    border-radius: 20px;
+    border: 1px solid #1b83d8;
+    background: #1b83d8;
+    color: #fff;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 12px 45px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: transform 80ms ease-in;
+    cursor: pointer;
+}
+
+.overlay-container a:active {
+    transform: scale(.95);
+}
+
+.overlay-container a:focus {
+    outline: none;
+}
+
+.overlay-container a.ghost {
+    background: transparent;
+    border-color: #fff;
+}
+
 
 .overlay-right {
     right: 0;

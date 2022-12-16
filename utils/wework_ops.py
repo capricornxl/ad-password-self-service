@@ -158,7 +158,7 @@ class WeWorkOps(AbstractApi):
     def get_user_info_by_ticket_with_oauth2(self, user_ticket):
         try:
             return True, self.http_call(
-                CORP_API_TYPE['GET_USER_TICKET_OAUTH2'],
+                CORP_API_TYPE['GET_USER_INFO_OAUTH2'],
                 {
                     'user_ticket': user_ticket
                 })
@@ -193,7 +193,7 @@ class WeWorkOps(AbstractApi):
 
         # 通过user_ticket获取企业微信用户详情信息
         detail_status, user_info = self.get_user_info_by_ticket_with_oauth2(ticket_data.get('user_ticket'))
-        print(user_info)
+        print("get_user_info_by_ticket_with_oauth2  --- ", user_info)
         if not detail_status:
             context = {
                 'msg': '获取用户信息失败，错误信息：{}'.format(user_id),

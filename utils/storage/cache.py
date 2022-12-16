@@ -56,3 +56,7 @@ class WeWorkCache(BaseCache):
     access_token = CacheItem()
 
 
+class DingDingCache(BaseCache):
+    access_token = CacheItem()
+
+

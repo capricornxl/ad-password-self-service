@@ -26,10 +26,10 @@ AD_USE_SSL = True
 # 连接的端口，如果启用SSL默认是636，否则就是389
 AD_CONN_PORT = 636
 
-# 扫码验证的类型
+# 验证的类型
 #       钉钉 / 企业微信，自行修改
 # 值是：DING /  WEWORK
-SCAN_CODE_TYPE = 'DING'
+AUTH_CODE_TYPE = 'DING'
 
 # ########## 钉钉 《如果不使用钉钉扫码，可不用配置》##########
 # 钉钉接口主地址，不可修改

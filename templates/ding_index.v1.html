@@ -8,7 +8,7 @@
     <script type="text/javascript" src="{% static 'js/jquery-1.8.3.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/alert.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/check.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/ddLogin-0.0.5.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/dingtalk.open.js' %}"></script>
 </head>
 <body>
 <div class="head-container" id="head-container">
@@ -18,50 +18,7 @@
 </div>
 <div class="middle-container" id="middle-container">
     <div class="form-container right-content-container">
-        <form action="" name="ding_qrcode">
-            <div style="width: 300px; height: 300px; margin: 0 auto" id="ding_code"></div>
-            <p>使用钉钉扫一扫进行登录验证</p>
-            <script type="text/javascript">
-                // 构造钉钉登录二唯码
-                var home_url = "{{ home_url }}";
-                var app_id = "{{ app_id }}";
-                var redirect_url = encodeURIComponent(home_url + '/callbackCheck');
-                var goto = encodeURIComponent('https://oapi.dingtalk.com/connect/qrconnect?appid='
-                    + app_id
-                    + '&response_type=code&scope=snsapi_login&state=STATE&redirect_uri='
-                    + redirect_url);
-                console.log(goto)
-                DDLogin({
-                    id: "ding_code",
-                    goto: goto,
-                    style: "border:none;background-color:#FFFFFF;",
-                    width: "300",
-                    height: "300"
-                });
-                // 扫码后的操作
-                var hanndleMessage = function (event) {
-                    var origin = event.origin;
-                    console.log("origin", event.origin)
-                    if (origin === "https://login.dingtalk.com") {
-                        var loginTmpCode = event.data;
-                        console.log("loginTmpCode", loginTmpCode);
-                        if (loginTmpCode) {
-                            //拿到loginTmpCode后就可以在这里构造跳转链接进行跳转了
-                            location.href = 'https://oapi.dingtalk.com/connect/oauth2/sns_authorize?appid='
-                                + app_id
-                                + '&response_type=code&scope=snsapi_login&state=STATE&redirect_uri='
-                                + redirect_url
-                                + '&loginTmpCode=' + loginTmpCode;
-                        }
-                    }
-                };
-                if (typeof window.addEventListener !== 'undefined') {
-                    window.addEventListener('message', hanndleMessage, false);
-                } else if (typeof window.attachEvent !== 'undefined') {
-                    window.attachEvent('onmessage', hanndleMessage);
-                }
-
-            </script>
+        <form action="">
         </form>
     </div>
     <div class="form-container left-content-container">
@@ -82,14 +39,18 @@
             <div class="overlay-panel overlay-left">
                 <h1>我要修改密码</h1>
                 <p>记得自己的旧密码，需要自行修改</p>
-                <p>⬇️点它</p>
-                <button class="ghost" id="modifyPwd">自助修改密码</button>
+                <p>⬇️⇓点它</p>
+                <button class="ghost" id="modifyPwd">我要修改密码</button>
             </div>
             <div class="overlay-panel overlay-right">
                 <h1>忘记密码或被锁</h1>
-                <p>如果密码己遗忘，可点击[扫码验证]，使用{{ scan_app }}扫码验证身份信息后进行重置</p>
+                <p>如果密码己遗忘，可通过使用⌊{{ scan_app }}⌉免密登录授权通过身份验证后方可重置</p>
+                <p></p>
                 <p>⬇️点它</p>
-                <button class="ghost" id="scanCode">扫码验证</button>
+                <form action="/resetPassword" id="formDingLogin" name="formDingLogin" method="get">
+                    <input type="hidden" name="code" value="" id="code">
+                    <button class="ghost" id="dingLogin" type="submit">我要重置密码</button>
+                </form>
             </div>
         </div>
     </div>
@@ -97,6 +58,34 @@
 <script src="{% static 'js/dmaku.js' %}"></script>
 <script>
     BtnClick("#btn_modify", 'modify', {{ unsecpwd|safe }})
+    let code;
+    window.onload = function () {
+        if (dd.env.platform !== 'notInDingTalk') {
+            dd.ready(() => {
+                dd.runtime.permission.requestAuthCode({corpId: '{{ corp_id }}'}).then((result) => {
+                    code = result.code;
+                }).catch(err => {
+                    console.log(err);
+                }).finally(() => {
+                    document.getElementById("code").setAttribute("value", code)
+                })
+            });
+        } else {
+            $.alert('请在钉钉中访问本应用!')
+        }
+    }
+    /** 回退事件 **/
+    dd.ready(function () {
+        document.addEventListener('backbutton', function (e) {
+            e.preventDefault();
+            dd.biz.navigation.close({
+                onSuccess: function (result) {
+                },
+                onFail: function (err) {
+                }
+            })
+        });
+    });
 </script>
 </body>
 </html>
