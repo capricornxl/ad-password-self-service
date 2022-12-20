@@ -1,4 +1,4 @@
-﻿a, body, button, dd, div, dl, dt, h1, h2, h3, h4, h5, h6, input, li, ol, p, td, textarea, ul { margin: 0; padding: 0; }
+a, body, button, dd, div, dl, dt, h1, h2, h3, h4, h5, h6, input, li, ol, p, td, textarea, ul { margin: 0; padding: 0; }
 body, button, input, select, textarea { font: 9pt/1.5 tahoma,arial,Hiragino Sans GB,\5b8b\4f53,sans-serif; }
 button, h1, h2, h3, h4, h5, h6, input, select, textarea { font-size: 100%; }
  /*background-image: linear-gradient(160deg, #2f548e 20%,#043559 80%);*/

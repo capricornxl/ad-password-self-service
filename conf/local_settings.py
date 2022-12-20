@@ -31,10 +31,7 @@ AD_CONN_PORT = 636
 # 值是：DING /  WEWORK
 AUTH_CODE_TYPE = 'DING'
 
-# ########## 钉钉 《如果不使用钉钉扫码，可不用配置》##########
-# 钉钉接口主地址，不可修改
-DING_URL = r'https://oapi.dingtalk.com'
-
+# ########## 钉钉 《如果不使用钉钉，可不用配置》##########
 # 钉钉企业ID <CorpId>，修改为自己的
 DING_CORP_ID = '修改为自己的'
 
@@ -48,7 +45,7 @@ DING_MO_APP_ID = r'修改为自己的'
 DING_MO_APP_SECRET = r'修改为自己的'
 
 
-# ####### 企业微信《如果不使用企业微信扫码，可不用配置》 ##########
+# ####### 企业微信《如果不使用企业微信，可不用配置》 ##########
 # 企业微信的企业ID
 WEWORK_CORP_ID = r'修改为自己的'
 # 应用的AgentId
@@ -58,11 +55,9 @@ WEWORK_AGNET_SECRET = r'修改为自己的'
 
 # Redis配置
 # redis的连接地址，redis://<Ip/Host>:<Port>/<数据库>
-REDIS_LOCATION = r'redis://127.0.0.1:6379/1'
-REDIS_PASSWORD = r'12345678'
+REDIS_LOCATION = r'redis://127.0.0.1:6379'
+REDIS_PASSWORD = r'修改为自己的'
 
-# COOKIE超时时间，单位是秒，可不用修改
-TMPID_COOKIE_AGE = 300
 
 # 主页域名，钉钉跳转等需要指定域名，格式：pwd.abc.com。
 # 如果是自定义安装，请修改成自己的域名

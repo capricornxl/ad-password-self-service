@@ -93,6 +93,10 @@ AD必须使用SSL才能修改密码（这里被坑了N久...）
  * 暂时没时间，做不了，已经剔除了！
 
 
+## 如果你觉得这个小工具对你有帮忙的话，可以请我喝杯咖啡~😁😁😁
+<img alt="截图10" height="400" src="screenshot/143fce31873f4d7a4ecd7a7b8c6a24c.png" width="300"/>
+<img alt="截图10" height="400" src="screenshot/微信图片_20221220140900.png" width="300"/>
+
 ## 使用脚本自动部署：
 使用脚本自动快速部署，只适合Centos，其它发行版本的Linux请自行修改相关命令。
 
@@ -158,14 +162,6 @@ WEWORK_AGNET_SECRET = r'修改为自己的'
 # redis的连接地址，redis://<Ip/Host>:<Port>/<数据库>
 REDIS_LOCATION = r'redis://127.0.0.1:6379/1'
 REDIS_PASSWORD = r'12345678'
-
-# ##########################
-# 执行：python3 ./utils/crypto.py 生成
-# 可自行生成后替换
-CRYPTO_KEY = b'dp8U9y7NAhCD3MoNwPzPBhBtTZ1uI_WWSdpNs6wUDgs='
-
-# COOKIE 超时单位是秒，可不用修改
-TMPID_COOKIE_AGE = 300
 
 # 主页域名，钉钉跳转等需要指定域名，格式：pwd.abc.com。
 # 如果是自定义安装，请修改成自己的域名
@@ -256,9 +252,6 @@ REDIS_PASSWORD = r'12345678'
 # 执行：python3 ./utils/crypto.py 生成
 # 可自行生成后替换
 CRYPTO_KEY = b'dp8U9y7NAhCD3MoNwPzPBhBtTZ1uI_WWSdpNs6wUDgs='
-
-# COOKIE 超时单位是秒，可不用修改
-TMPID_COOKIE_AGE = 300
 
 # 主页域名，钉钉跳转等需要指定域名，格式：pwd.abc.com。
 # 如果是自定义安装，请修改成自己的域名

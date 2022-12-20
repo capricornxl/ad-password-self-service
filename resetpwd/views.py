@@ -7,7 +7,7 @@ from ldap3.core.exceptions import LDAPException
 import urllib.parse as url_encode
 from utils.format_username import format2username, get_user_is_active, get_email_from_userinfo
 from .form import CheckForm
-from .utils import code_2_user_detail, crypto_id_2_user_info, ops_account
+from .utils import code_2_user_detail, ops_account
 from django.conf import settings
 APP_ENV = os.getenv('APP_ENV')
 if APP_ENV == 'dev':
@@ -28,13 +28,6 @@ class PARAMS(object):
         from utils.dingding_ops import DingDingOps
         ops = DingDingOps()
     elif AUTH_CODE_TYPE == 'WEWORK':
-        corp_id = None
-        app_id = WEWORK_CORP_ID
-        agent_id = WEWORK_AGENT_ID
-        AUTH_APP = '微信'
-        from utils.wework_ops import WeWorkOps
-        ops = WeWorkOps()
-    else:
         corp_id = None
         app_id = WEWORK_CORP_ID
         agent_id = WEWORK_AGENT_ID
@@ -63,8 +56,6 @@ def index(request):
         return render(request, 'ding_index.v1.html', locals())
     elif request.method == 'GET' and AUTH_CODE_TYPE == 'WEWORK':
         return render(request, 'we_index.v1.html', locals())
-    elif request.method == 'GET' and AUTH_CODE_TYPE == 'FEISHU':
-        return render(request, 'index.v1.html', locals())
     else:
         logger.error('[异常]  请求方法：%s，请求路径%s' % (request.method, request.path))
     #
@@ -123,7 +114,6 @@ def reset_password(request):
     :return:
     """
     home_url = '%s://%s' % (request.scheme, HOME_URL)
-    # 从cookie中提取union_id，并解密，然后对当前union_id的用户进行重置密码
     if request.method == 'GET':
         code = request.GET.get('code')
         if code:
@@ -138,13 +128,13 @@ def reset_password(request):
             return render(request, msg_template, context)
 
         try:
+            # 用code换取用户基本信息
             _status, user_id, user_info = code_2_user_detail(_ops, home_url, code)
             if not _status:
                 return render(request, msg_template, user_id)
-            # 账号是否是激活的
+            # 账号在企业微信或钉钉中是否是激活的
             _, res = get_user_is_active(user_info)
             if not _:
-                # 否则账号不存在或未激活
                 context = {
                     'msg': '当前扫码的用户未激活或可能己离职，用户信息如下：%s' % user_info,
                     'button_click': "window.location.href='%s'" % home_url,
@@ -160,7 +150,7 @@ def reset_password(request):
             logger.error('[异常] ：%s' % str(callback_e))
             return render(request, msg_template, context)
 
-        # 通过user_info拿到用户信息，并格式化为username
+        # 通过user_info拿到用户邮箱，并格式化为username
         _, email = get_email_from_userinfo(user_info)
         if not _:
             context = {
@@ -181,8 +171,10 @@ def reset_password(request):
 
         # 如果邮箱能提取到，则格式化之后，提取出账号提交到前端绑定
         if username:
+            request.session[username] = code
             context = {
                 'username': username,
+                'code': code,
             }
             return render(request, 'resetPassword.v1.html', context)
         else:
@@ -195,43 +187,25 @@ def reset_password(request):
 
     # 重置密码页面，输入新密码后点击提交
     elif request.method == 'POST':
-        try:
+        username = request.POST.get('username')
+        code = request.POST.get('code')
+        if request.session.get(username) and request.session.get(username) == code:
             _new_password = request.POST.get('new_password').strip()
-            _status, user_info = crypto_id_2_user_info(_ops, request, msg_template, home_url, scan_params.AUTH_APP)
-            if not _status:
-                return render(request, msg_template, user_info)
-
-            # 通过user_info拿到用户信息，并格式化为username
-            _, email = get_email_from_userinfo(user_info)
-            if not _:
+            try:
+                return ops_account(ad_ops=AdOps(), request=request, msg_template=msg_template, home_url=home_url, username=username, new_password=_new_password)
+            except Exception as reset_e:
                 context = {
-                    'msg': email,
+                    'msg': "错误[%s]，请与管理员联系." % str(reset_e),
                     'button_click': "window.location.href='%s'" % home_url,
                     'button_display': "返回主页"
                 }
+                logger.error('[异常] ：%s' % str(reset_e))
                 return render(request, msg_template, context)
-
-            # 格式化用户名
-            _, username = format2username(email)
-            if _ is False:
-                context = {
-                    'msg': username,
-                    'button_click': "window.location.href='%s'" % home_url,
-                    'button_display': "返回主页"
-                }
-                return render(request, msg_template, context)
-            return ops_account(ad_ops=AdOps(), request=request, msg_template=msg_template, home_url=home_url, username=username, new_password=_new_password)
-        except Exception as reset_e:
-            context = {
-                'msg': "错误[%s]，请与管理员联系." % str(reset_e),
-                'button_click': "window.location.href='%s'" % home_url,
-                'button_display': "返回主页"
-            }
-            logger.error('[异常] ：%s' % str(reset_e))
-            return render(request, msg_template, context)
+            finally:
+                del request.session[username]
     else:
         context = {
-            'msg': "请从主页开始进行操作。",
+            'msg': "认证已经失效，请从主页重新进行操作。",
             'button_click': "window.location.href='%s'" % home_url,
             'button_display': "返回主页"
         }
@@ -245,62 +219,26 @@ def unlock_account(request):
     :return:
     """
     home_url = '%s://%s' % (request.scheme, HOME_URL)
-    if request.method == 'GET':
-        _status, user_info = crypto_id_2_user_info(_ops, request, msg_template, home_url, scan_params.AUTH_APP)
-        if not _status:
-            return render(request, msg_template, user_info)
 
-        # 通过user_info拿到用户信息，并格式化为username
-        _, email = get_email_from_userinfo(user_info)
-        if not _:
-            context = {
-                'msg': email,
-                'button_click': "window.location.href='%s'" % home_url,
-                'button_display': "返回主页"
-            }
-            return render(request, msg_template, context)
-
-        _, username = format2username(email)
-        if _ is False:
-            context = {
-                'msg': username,
-                'button_click': "window.location.href='%s'" % home_url,
-                'button_display': "返回主页"
-            }
-            return render(request, msg_template, context)
-        context = {
-            'username': username,
-        }
-        return render(request, 'resetPassword.v1.html', context)
-
-    elif request.method == 'POST':
-        _status, user_info = crypto_id_2_user_info(_ops, request, msg_template, home_url, scan_params.AUTH_APP)
-        if not _status:
-            return render(request, msg_template, user_info)
-
-        # 通过user_info拿到用户信息，并格式化为username
-        _, email = get_email_from_userinfo(user_info)
-        if not _:
-            context = {
-                'msg': email,
-                'button_click': "window.location.href='%s'" % home_url,
-                'button_display': "返回主页"
-            }
-            return render(request, msg_template, context)
-
-        # 格式化用户名
-        _, username = format2username(email)
-        if _ is False:
-            context = {
-                'msg': username,
-                'button_click': "window.location.href='%s'" % home_url,
-                'button_display': "返回主页"
-            }
-            return render(request, msg_template, context)
-        return ops_account(AdOps(), request, msg_template, home_url, username, None)
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        code = request.POST.get('code')
+        if request.session.get(username) and request.session.get(username) == code:
+            try:
+                return ops_account(AdOps(), request, msg_template, home_url, username, None)
+            except Exception as reset_e:
+                context = {
+                    'msg': "错误[%s]，请与管理员联系." % str(reset_e),
+                    'button_click': "window.location.href='%s'" % home_url,
+                    'button_display': "返回主页"
+                }
+                logger.error('[异常] ：%s' % str(reset_e))
+                return render(request, msg_template, context)
+            finally:
+                del request.session[username]
     else:
         context = {
-            'msg': "请从主页开始进行操作。",
+            'msg': "认证已经失效，请从主页重新进行操作。",
             'button_click': "window.location.href='%s'" % home_url,
             'button_display': "返回主页"
         }
