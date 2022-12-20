@@ -8,7 +8,6 @@ else:
     from conf.local_settings import REDIS_PASSWORD, REDIS_LOCATION
     DEBUG = False
 
-
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -80,8 +79,10 @@ SESSION_SAVE_EVERY_REQUEST = True
 SESSION_COOKIE_AGE = 300
 # False 会话cookie可以在用户浏览器中保持有效期。True：关闭浏览器，则Cookie失效。
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-# 建议配置，阻止 javascript 对会话数据的访问，提高安全性。
-# SESSION_COOKIE_HTTPONLY= True
+# session使用的存储方式
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+# 指明使用哪一个库保存session数据
+SESSION_CACHE_ALIAS = "session"
 
 
 INSTALLED_APPS = [
@@ -132,11 +133,19 @@ AD_ACCOUNT_DISABLE_CODE = [514, 66050]
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": REDIS_LOCATION,
+        "LOCATION": "{}/1".format(REDIS_LOCATION),
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "PASSWORD": REDIS_PASSWORD,
-            "COMPRESSOR": "django_redis.compressors.zlib.ZlibCompressor",
+            "IGNORE_EXCEPTIONS": True,
+        }
+    },
+    "session": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "{}/3".format(REDIS_LOCATION),  # 指明使用redis的3号数据库
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "PASSWORD": REDIS_PASSWORD,
             "IGNORE_EXCEPTIONS": True,
         }
     }

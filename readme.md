@@ -159,14 +159,6 @@ WEWORK_AGNET_SECRET = r'修改为自己的'
 REDIS_LOCATION = r'redis://127.0.0.1:6379/1'
 REDIS_PASSWORD = r'12345678'
 
-# ##########################
-# 执行：python3 ./utils/crypto.py 生成
-# 可自行生成后替换
-CRYPTO_KEY = b'dp8U9y7NAhCD3MoNwPzPBhBtTZ1uI_WWSdpNs6wUDgs='
-
-# COOKIE 超时单位是秒，可不用修改
-TMPID_COOKIE_AGE = 300
-
 # 主页域名，钉钉跳转等需要指定域名，格式：pwd.abc.com。
 # 如果是自定义安装，请修改成自己的域名
 HOME_URL = 'PWD_SELF_SERVICE_DOMAIN'
@@ -256,9 +248,6 @@ REDIS_PASSWORD = r'12345678'
 # 执行：python3 ./utils/crypto.py 生成
 # 可自行生成后替换
 CRYPTO_KEY = b'dp8U9y7NAhCD3MoNwPzPBhBtTZ1uI_WWSdpNs6wUDgs='
-
-# COOKIE 超时单位是秒，可不用修改
-TMPID_COOKIE_AGE = 300
 
 # 主页域名，钉钉跳转等需要指定域名，格式：pwd.abc.com。
 # 如果是自定义安装，请修改成自己的域名

@@ -1,4 +1,4 @@
-﻿
+
 function BtnClick(btn, type, unsecpwd) {
     $(btn).click(function () {
         // ^(?=.*[0-9])(?=.*[a-zA-Z])(?=.*[!@#$\%\^\&\*\(\)])[0-9a-zA-Z!@#$\%\^\&\*\(\)]{8,32}$ 要求密码了里面包含字母、数字、特殊字符。
