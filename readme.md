@@ -134,9 +134,6 @@ AD_CONN_PORT = 636
 AUTH_CODE_TYPE = 'DING'
 
 # ########## 钉钉 《如果不使用钉钉扫码，可不用配置》##########
-# 钉钉接口主地址，不可修改
-DING_URL = r'https://oapi.dingtalk.com'
-
 # 钉钉企业ID <CorpId>，修改为自己的
 DING_CORP_ID = '修改为自己的'
 
@@ -159,8 +156,8 @@ WEWORK_AGENT_ID = r'修改为自己的'
 WEWORK_AGNET_SECRET = r'修改为自己的'
 
 # Redis配置
-# redis的连接地址，redis://<Ip/Host>:<Port>/<数据库>
-REDIS_LOCATION = r'redis://127.0.0.1:6379/1'
+# redis的连接地址，redis://<Ip/Host>:<Port>
+REDIS_LOCATION = r'redis://127.0.0.1:6379'
 REDIS_PASSWORD = r'12345678'
 
 # 主页域名，钉钉跳转等需要指定域名，格式：pwd.abc.com。
@@ -219,9 +216,6 @@ AD_CONN_PORT = 636
 AUTH_CODE_TYPE = 'DING'
 
 # ########## 钉钉 《如果不使用钉钉扫码，可不用配置》##########
-# 钉钉接口主地址，不可修改
-DING_URL = r'https://oapi.dingtalk.com'
-
 # 钉钉企业ID <CorpId>，修改为自己的
 DING_CORP_ID = '修改为自己的'
 
@@ -244,14 +238,9 @@ WEWORK_AGENT_ID = r'修改为自己的'
 WEWORK_AGNET_SECRET = r'修改为自己的'
 
 # Redis配置
-# redis的连接地址，redis://<Ip/Host>:<Port>/<数据库>
-REDIS_LOCATION = r'redis://127.0.0.1:6379/1'
+# redis的连接地址，redis://<Ip/Host>:<Port>
+REDIS_LOCATION = r'redis://127.0.0.1:6379'
 REDIS_PASSWORD = r'12345678'
-
-# ##########################
-# 执行：python3 ./utils/crypto.py 生成
-# 可自行生成后替换
-CRYPTO_KEY = b'dp8U9y7NAhCD3MoNwPzPBhBtTZ1uI_WWSdpNs6wUDgs='
 
 # 主页域名，钉钉跳转等需要指定域名，格式：pwd.abc.com。
 # 如果是自定义安装，请修改成自己的域名
@@ -270,7 +259,9 @@ IP和路径按自己实际路径修改
 http-socket = PWD_SELF_SERVICE_IP:PWD_SELF_SERVICE_PORT
 
 chdir = PWD_SELF_SERVICE_HOME
- 
+
+env=DJANGO_SETTINGS_MODULE=pwdselfservice.settings
+
 module = pwdselfservice.wsgi:application
 
 master = true
