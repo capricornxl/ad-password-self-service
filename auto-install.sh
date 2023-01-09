@@ -155,9 +155,13 @@ else
     else
         echo "脚本目录下没有发现Python${PYTHON_VER}.tar.xz，将会下载python ${PYTHON_VER}"
         sudo wget https://www.python.org/ftp/python/${PYTHON_VER}/Python-${PYTHON_VER}.tar.xz
+        if [[ $? -eq 0 ]]; then
         tar xf Python-${PYTHON_VER}.tar.xz
         cd Python-${PYTHON_VER}
         sudo ./configure --prefix=${PYTHON_INSTALL_DIR} && make && make install
+        else
+            echo "下载${PYTHON_VER}/Python-${PYTHON_VER}.tar.xz失败，请重新运行本脚本再次重试"
+        fi
     fi
 
     if [[ $? -eq 0 ]]
@@ -175,6 +179,20 @@ else
       echo "======================================================================="
       exit 1
     fi
+fi
+
+
+yum install -y redis
+if [[ $? -eq 0 ]]; then
+    gen_password=$(echo "$(hostname)$(date)" |base64)
+    sed -i 's@^requirepass.*@@g' /etc/redis.conf
+    sed -i "/# requirepass foobared/a requirepass ${gen_password}" /etc/redis.conf
+    systemctl restart redis
+    sed -i "s@REDIS_PASSWORD.*@REDIS_PASSWORD = r'${gen_password}'@g" ${SHELL_FOLDER}/conf/local_settings.py
+    echo "安装 redis-server 成功"
+    echo "Redis Server密码是：${gen_password}，可在/etc/redis.conf中查到"
+else
+    echo "安装 redis-server 失败，请重新运行本脚本再试"
 fi
 
 

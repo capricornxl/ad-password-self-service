@@ -54,7 +54,7 @@ WEWORK_AGENT_ID = r'修改为自己的'
 WEWORK_AGNET_SECRET = r'修改为自己的'
 
 # Redis配置
-# redis的连接地址，redis://<Ip/Host>:<Port>/<数据库>
+# redis的连接地址，redis://<Ip/Host>:<Port>
 REDIS_LOCATION = r'redis://127.0.0.1:6379'
 REDIS_PASSWORD = r'修改为自己的'
 
