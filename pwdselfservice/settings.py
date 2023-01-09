@@ -2,10 +2,8 @@ import os
 
 APP_ENV = os.getenv('APP_ENV')
 if APP_ENV == 'dev':
-    from conf.local_settings_dev import REDIS_PASSWORD, REDIS_LOCATION
     DEBUG = True
 else:
-    from conf.local_settings import REDIS_PASSWORD, REDIS_LOCATION
     DEBUG = False
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -80,13 +78,9 @@ SESSION_COOKIE_AGE = 300
 # False 会话cookie可以在用户浏览器中保持有效期。True：关闭浏览器，则Cookie失效。
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 # session使用的存储方式
-SESSION_ENGINE = "django.contrib.sessions.backends.cache"
-# 指明使用哪一个库保存session数据
-SESSION_CACHE_ALIAS = "session"
-
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 
 INSTALLED_APPS = [
-    # 'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -94,6 +88,13 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'resetpwd',
 ]
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+    }
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -129,27 +130,6 @@ WSGI_APPLICATION = 'pwdselfservice.wsgi.application'
 # 514 66050是AD中账号被禁用的特定代码，这个可以在微软官网查到。
 # 可能不是太准确，如果使用者能确定还有其它状态码，可以自行在此处添加
 AD_ACCOUNT_DISABLE_CODE = [514, 66050]
-
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "{}/1".format(REDIS_LOCATION),
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            "PASSWORD": REDIS_PASSWORD,
-            "IGNORE_EXCEPTIONS": True,
-        }
-    },
-    "session": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "{}/3".format(REDIS_LOCATION),  # 指明使用redis的3号数据库
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            "PASSWORD": REDIS_PASSWORD,
-            "IGNORE_EXCEPTIONS": True,
-        }
-    }
-}
 
 AUTH_PASSWORD_VALIDATORS = [
     {

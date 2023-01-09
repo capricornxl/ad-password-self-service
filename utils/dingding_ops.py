@@ -4,8 +4,8 @@ from __future__ import absolute_import, unicode_literals
 from dingtalk.client import AppKeyClient
 from pwdselfservice import cache_storage
 
-
 import os
+
 APP_ENV = os.getenv('APP_ENV')
 
 if APP_ENV == 'dev':
@@ -15,7 +15,8 @@ else:
 
 
 class DingDingOps(AppKeyClient):
-    def __init__(self, corp_id=DING_CORP_ID, app_key=DING_APP_KEY, app_secret=DING_APP_SECRET, mo_app_id=DING_MO_APP_ID, mo_app_secret=DING_MO_APP_SECRET,
+    def __init__(self, corp_id=DING_CORP_ID, app_key=DING_APP_KEY, app_secret=DING_APP_SECRET, mo_app_id=DING_MO_APP_ID,
+                 mo_app_secret=DING_MO_APP_SECRET,
                  storage=cache_storage):
         super().__init__(corp_id, app_key, app_secret, storage)
         self.corp_id = corp_id
@@ -58,18 +59,18 @@ class DingDingOps(AppKeyClient):
         _status, user_id = self.get_user_id_by_code(code)
         # 判断 user_id 在本企业钉钉/微信中是否存在
         if not _status:
-            context = {
-                'msg': '获取userid失败，错误信息：{}'.format(user_id),
-                'button_click': "window.location.href='%s'" % home_url,
-                'button_display': "返回主页"
-            }
+            context = {'global_title': TITLE,
+                       'msg': '获取userid失败，错误信息：{}'.format(user_id),
+                       'button_click': "window.location.href='%s'" % home_url,
+                       'button_display': "返回主页"
+                       }
             return False, context, user_id
         detail_status, user_info = self.get_user_detail_by_user_id(user_id)
         if not detail_status:
-            context = {
-                'msg': '获取用户信息失败，错误信息：{}'.format(user_info),
-                'button_click': "window.location.href='%s'" % home_url,
-                'button_display': "返回主页"
-            }
+            context = {'global_title': TITLE,
+                       'msg': '获取用户信息失败，错误信息：{}'.format(user_info),
+                       'button_click': "window.location.href='%s'" % home_url,
+                       'button_display': "返回主页"
+                       }
             return False, context, user_info
         return True, user_id, user_info

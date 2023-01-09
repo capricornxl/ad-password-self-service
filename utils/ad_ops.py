@@ -1,9 +1,11 @@
 import ldap3
 from ldap3 import *
-from ldap3.core.exceptions import LDAPInvalidCredentialsResult, LDAPOperationResult, LDAPExceptionError,LDAPException
+from ldap3.core.exceptions import LDAPInvalidCredentialsResult, LDAPOperationResult, LDAPExceptionError, LDAPException, \
+    LDAPSocketOpenError
 from ldap3.core.results import *
 from ldap3.utils.dn import safe_dn
 import os
+
 APP_ENV = os.getenv('APP_ENV')
 if APP_ENV == 'dev':
     from conf.local_settings_dev import *
@@ -36,7 +38,8 @@ unicodePwd 属性的语法为 octet-string;但是，目录服务预期八进制�
 
 class AdOps(object):
 
-    def __init__(self, auto_bind=True, use_ssl=AD_USE_SSL, port=AD_CONN_PORT, domain=AD_DOMAIN, user=AD_LOGIN_USER, password=AD_LOGIN_USER_PWD,
+    def __init__(self, auto_bind=True, use_ssl=AD_USE_SSL, port=AD_CONN_PORT, domain=AD_DOMAIN, user=AD_LOGIN_USER,
+                 password=AD_LOGIN_USER_PWD,
                  authentication=NTLM):
         """
         AD连接器 authentication  [SIMPLE, ANONYMOUS, SASL, NTLM]
@@ -51,17 +54,38 @@ class AdOps(object):
         self.password = password
         self.authentication = authentication
         self.auto_bind = auto_bind
+        self.server = None
+        self.conn = None
 
-        server = Server(host='%s' % AD_HOST, connect_timeout=1, use_ssl=self.use_ssl, port=port, get_info=ALL)
-        try:
-            self.conn = Connection(server, auto_bind=self.auto_bind, user=r'{}\{}'.format(self.domain, self.user), password=self.password,
-                                   authentication=self.authentication, raise_exceptions=True)
-        except LDAPInvalidCredentialsResult as lic_e:
-            raise LDAPOperationResult("LDAPInvalidCredentialsResult: " + str(lic_e.message))
-        except LDAPOperationResult as lo_e:
-            raise LDAPOperationResult("LDAPOperationResult: " + str(lo_e.message))
-        except LDAPException as l_e:
-            raise LDAPException("LDAPException: " + str(l_e))
+    def __server(self):
+        if self.server is None:
+            try:
+                self.server = Server(host='%s' % AD_HOST, connect_timeout=1, use_ssl=self.use_ssl, port=self.port,
+                                     get_info=ALL)
+            except LDAPInvalidCredentialsResult as lic_e:
+                return False, LDAPOperationResult("LDAPInvalidCredentialsResult: " + str(lic_e.message))
+            except LDAPOperationResult as lo_e:
+                return False, LDAPOperationResult("LDAPOperationResult: " + str(lo_e.message))
+            except LDAPException as l_e:
+                return False, LDAPException("LDAPException: " + str(l_e))
+
+    def __conn(self):
+        if self.conn is None:
+            try:
+                self.__server()
+                self.conn = Connection(self.server,
+                                       auto_bind=self.auto_bind, user=r'{}\{}'.format(self.domain, self.user),
+                                       password=self.password,
+                                       authentication=self.authentication,
+                                       raise_exceptions=True)
+            except LDAPInvalidCredentialsResult as lic_e:
+                return False, LDAPOperationResult("LDAPInvalidCredentialsResult: " + str(lic_e.message))
+
+            except LDAPOperationResult as lo_e:
+                return False, LDAPOperationResult("LDAPOperationResult: " + str(lo_e.message))
+
+            except LDAPException as l_e:
+                return False, LDAPException("LDAPException: " + str(l_e))
 
     def ad_auth_user(self, username, password):
         """
@@ -71,8 +95,9 @@ class AdOps(object):
         :return: True or False
         """
         try:
-            server = Server(host='%s' % AD_HOST, use_ssl=self.use_ssl, port=self.port, get_info=ALL)
-            c_auth = Connection(server=server, user=r'{}\{}'.format(self.domain, username), password=password, auto_bind=True, raise_exceptions=True)
+            self.__server()
+            c_auth = Connection(server=self.server, user=r'{}\{}'.format(self.domain, username), password=password,
+                                auto_bind=True, raise_exceptions=True)
             c_auth.unbind()
             return True, '旧密码验证通过。'
         except LDAPInvalidCredentialsResult as e:
@@ -92,11 +117,15 @@ class AdOps(object):
                 # 如果仅仅使用普通凭据来绑定ldap用途，请返回False, 让用户通过其他途径修改密码后再来验证登陆
                 # return False, '用户登陆前必须修改密码！'
                 # 设置该账号下次登陆不需要更改密码，再验证一次
-                self.conn.search(search_base=BASE_DN, search_filter='(sAMAccountName={}))'.format(username), attributes=['pwdLastSet'])
+                self.__conn()
+                self.conn.search(search_base=BASE_DN, search_filter='(sAMAccountName={}))'.format(username),
+                                 attributes=['pwdLastSet'])
                 self.conn.modify(self.conn.entries[0].entry_dn, {'pwdLastSet': [(MODIFY_REPLACE, ['-1'])]})
-                return self.ad_auth_user(username, password)
+                return True, self.ad_auth_user(username, password)
             else:
                 return False, u'旧密码认证失败，请确认账号的旧密码是否正确或使用重置密码功能。'
+        except LDAPException as e:
+            return False, "连接Ldap失败，报错如下：{}".format(e)
 
     def ad_ensure_user_by_account(self, username):
         """
@@ -105,9 +134,11 @@ class AdOps(object):
         :return: True or False
         """
         try:
-            return True, self.conn.search(BASE_DN, '(&(objectclass=user)(sAMAccountName={}))'.format(username), attributes=['sAMAccountName'])
+            self.__conn()
+            return True, self.conn.search(BASE_DN, '(&(objectclass=user)(sAMAccountName={}))'.format(username),
+                                          attributes=['sAMAccountName'])
         except Exception as e:
-            return False, "AdOps Exception: {}" .format(e)
+            return False, "AdOps Exception: {}".format(e)
 
     def ad_get_user_displayname_by_account(self, username):
         """
@@ -116,10 +147,11 @@ class AdOps(object):
         :return: user_displayname
         """
         try:
+            self.__conn()
             self.conn.search(BASE_DN, '(&(objectclass=user)(sAMAccountName={}))'.format(username), attributes=['name'])
             return True, self.conn.entries[0]['name']
         except Exception as e:
-            return False, "AdOps Exception: {}" .format(e)
+            return False, "AdOps Exception: {}".format(e)
 
     def ad_get_user_dn_by_account(self, username):
         """
@@ -128,10 +160,12 @@ class AdOps(object):
         :return: DN
         """
         try:
-            self.conn.search(BASE_DN, '(&(objectclass=user)(sAMAccountName={}))'.format(username), attributes=['distinguishedName'])
+            self.__conn()
+            self.conn.search(BASE_DN, '(&(objectclass=user)(sAMAccountName={}))'.format(username),
+                             attributes=['distinguishedName'])
             return True, str(self.conn.entries[0]['distinguishedName'])
         except Exception as e:
-            return False, "AdOps Exception: {}" .format(e)
+            return False, "AdOps Exception: {}".format(e)
 
     def ad_get_user_status_by_account(self, username):
         """
@@ -140,10 +174,12 @@ class AdOps(object):
         :return: user_account_control code
         """
         try:
-            self.conn.search(BASE_DN, '(&(objectclass=user)(sAMAccountName={}))'.format(username), attributes=['userAccountControl'])
+            self.__conn()
+            self.conn.search(BASE_DN, '(&(objectclass=user)(sAMAccountName={}))'.format(username),
+                             attributes=['userAccountControl'])
             return True, self.conn.entries[0]['userAccountControl']
         except Exception as e:
-            return False, "AdOps Exception: {}" .format(e)
+            return False, "AdOps Exception: {}".format(e)
 
     def ad_unlock_user_by_account(self, username):
         """
@@ -189,7 +225,8 @@ class AdOps(object):
             # change was not successful, raises exception if raise_exception = True in connection or returns the operation result, error code is in result['result']
             if self.conn.raise_exceptions:
                 from ldap3.core.exceptions import LDAPOperationResult
-                _msg = LDAPOperationResult(result=result['result'], description=result['description'], dn=result['dn'], message=result['message'],
+                _msg = LDAPOperationResult(result=result['result'], description=result['description'], dn=result['dn'],
+                                           message=result['message'],
                                            response_type=result['type'])
                 return False, _msg
             return False, result['result']
@@ -203,35 +240,13 @@ class AdOps(object):
         :return: 如果结果是1601-01-01说明账号未锁定，返回0
         """
         try:
-            self.conn.search(BASE_DN, '(&(objectclass=user)(sAMAccountName={}))'.format(username), attributes=['lockoutTime'])
+            self.__conn()
+            self.conn.search(BASE_DN, '(&(objectclass=user)(sAMAccountName={}))'.format(username),
+                             attributes=['lockoutTime'])
             locked_status = self.conn.entries[0]['lockoutTime']
             if '1601-01-01' in str(locked_status):
                 return True, 'unlocked'
             else:
                 return False, locked_status
         except Exception as e:
-            return False, "AdOps Exception: {}" .format(e)
-
-
-if __name__ == '__main__':
-    # server = Server(host='%s' % AD_HOST, use_ssl=AD_USE_SSL, port=AD_CONN_PORT, get_info=ALL)
-    # conn = Connection(server, auto_bind=True, user=str(AD_LOGIN_USER).lower(), password=AD_LOGIN_USER_PWD, authentication=SIMPLE)
-    # # conn.bind()
-    # # conn.search(BASE_DN, '(&(objectclass=user)(sAMAccountName=xiangle))', attributes=['name'])
-    # # print(conn.entries[0])
-    # print(conn.result)
-
-    # conn = _ad_connect()
-    # user = 'zhangsan'
-    # old_password = 'K2dhhuT1Zf11111cnJ1ollC3y'
-    # # old_password = 'L1qyrmZDUFeYW1OIualjlNhr4'
-    # new_password = 'K2dhhuT1Zf11111cnJ1ollC3y'
-    # ad_ops = AdOps()
-    # # ad_ops = AdOps(user=user, password=old_password)
-    # status, msg = ad_ops.ad_auth_user(username=user, password=old_password)
-    # print(msg)
-    # if status:
-    #     res = ad_ops.ad_reset_user_pwd_by_account(user, new_password)
-    #     print(res)
-    _ad = AdOps()
-    print(_ad.ad_ensure_user_by_account('le.xiang'))
+            return False, "AdOps Exception: {}".format(e)
