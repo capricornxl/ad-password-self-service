@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block paneltitle %}结果{% endblock %}
+{% block middleblock %}
+<div class="layui-row">
+    <form class="layui-form  layui-form-pane" method="get" autocomplete="off">{% csrf_token %}
+        <div class="layui-form-item">
+            {{ msg }}
+        </div>
+        <div class="layui-form-item">
+            <button type="button" class="layui-btn layui-btn-normal layui-btn-fluid" onclick="{{ button_click }}">{{ button_display }}</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

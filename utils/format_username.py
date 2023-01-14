@@ -51,8 +51,3 @@ def get_user_is_active(user_info):
     except (KeyError, IndexError) as k_error:
         return False, 'get_user_is_active: %s' % str(k_error)
 
-
-if __name__ == '__main__':
-    user = 'jf.com\XiangLe'
-    username = format2username(user)
-    print(username)

@@ -23,7 +23,7 @@ class MemoryStorage(BaseStorage):
             else:
                 return default
 
-    def set(self, key, value, ttl=None):
+    def set(self, key, value, ttl=3600):
         if value is None:
             return
         self._data[key] = (value, int(time.time()) + ttl)

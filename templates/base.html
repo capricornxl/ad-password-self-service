@@ -1,0 +1,57 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta http-equiv="Pragma" content= "no-cache" />
+    <meta http-equiv="Cache-Control" content= "no-cache" />
+    <meta http-equiv="Expires" content= "0" />
+    <title>{{ global_title }}</title>
+    <link rel="stylesheet" href="{% static 'layui/css/layui.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block headercss %}{% endblock %}
+    {% block headerjs %}{% endblock %}
+</head>
+<body>
+<!--[if lt IE 9]>
+  <script src="{% static 'js/html5.min.js' %}"></script>
+  <script src="{% static 'js/respond.min.js' %}"></script>
+<![endif]-->
+<div class="layui-container">
+    <div class="layui-row">
+        <div class="layui-hide-xs layui-col-md1">
+            <div class="grid"></div>
+        </div>
+        <div class="layui-col-xs12 layui-col-md10">
+            <div class="grid">
+                <div class="middle-header">
+                    <h1>{{ global_title }}</h1>
+                </div>
+                <div class="layui-panel">
+                    <div class="layui-row">
+                        {% block upmiddleheader %}{% endblock %}
+                    </div>
+                    <fieldset class="layui-elem-field  layui-field-title" style="margin-top: 20px;">
+                        <legend>
+                            {% block paneltitle %}{% endblock %}
+                        </legend>
+                    </fieldset>
+                    {% block middleblock %}{% endblock %}
+                </div>
+            </div>
+            <div class="grid">
+                {% block middleblockfoot %}
+                {% endblock %}
+            </div>
+        </div>
+        <div class="layui-hide-xs layui-col-md1">
+            <div class="grid"></div>
+        </div>
+    </div>
+</div>
+<script src="{% static 'layui/layui.js' %}" charset="utf-8"></script>
+{% block footercss %}{% endblock %}
+{% block footerjs %}{% endblock %}
+</body>
+</html>

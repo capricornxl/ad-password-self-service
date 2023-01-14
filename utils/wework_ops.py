@@ -22,8 +22,6 @@ else:
 CORP_API_TYPE = {
     'GET_USER_TICKET_OAUTH2': ['/cgi-bin/auth/getuserinfo?access_token=ACCESS_TOKEN', 'GET'],
     'GET_USER_INFO_OAUTH2': ['/cgi-bin/auth/getuserdetail?access_token=ACCESS_TOKEN', 'POST'],
-
-
     'GET_ACCESS_TOKEN': ['/cgi-bin/gettoken', 'GET'],
     'USER_CREATE': ['/cgi-bin/user/create?access_token=ACCESS_TOKEN', 'POST'],
     'USER_GET': ['/cgi-bin/user/get?access_token=ACCESS_TOKEN', 'GET'],
@@ -35,12 +33,10 @@ CORP_API_TYPE = {
     'USERID_TO_OPENID': ['/cgi-bin/user/convert_to_openid?access_token=ACCESS_TOKEN', 'POST'],
     'OPENID_TO_USERID': ['/cgi-bin/user/convert_to_userid?access_token=ACCESS_TOKEN', 'POST'],
     'USER_AUTH_SUCCESS': ['/cgi-bin/user/authsucc?access_token=ACCESS_TOKEN', 'GET'],
-
     'DEPARTMENT_CREATE': ['/cgi-bin/department/create?access_token=ACCESS_TOKEN', 'POST'],
     'DEPARTMENT_UPDATE': ['/cgi-bin/department/update?access_token=ACCESS_TOKEN', 'POST'],
     'DEPARTMENT_DELETE': ['/cgi-bin/department/delete?access_token=ACCESS_TOKEN', 'GET'],
     'DEPARTMENT_LIST': ['/cgi-bin/department/list?access_token=ACCESS_TOKEN', 'GET'],
-
     'TAG_CREATE': ['/cgi-bin/tag/create?access_token=ACCESS_TOKEN', 'POST'],
     'TAG_UPDATE': ['/cgi-bin/tag/update?access_token=ACCESS_TOKEN', 'POST'],
     'TAG_DELETE': ['/cgi-bin/tag/delete?access_token=ACCESS_TOKEN', 'GET'],
@@ -48,34 +44,24 @@ CORP_API_TYPE = {
     'TAG_ADD_USER': ['/cgi-bin/tag/addtagusers?access_token=ACCESS_TOKEN', 'POST'],
     'TAG_DELETE_USER': ['/cgi-bin/tag/deltagusers?access_token=ACCESS_TOKEN', 'POST'],
     'TAG_GET_LIST': ['/cgi-bin/tag/list?access_token=ACCESS_TOKEN', 'GET'],
-
     'BATCH_JOB_GET_RESULT': ['/cgi-bin/batch/getresult?access_token=ACCESS_TOKEN', 'GET'],
-
     'BATCH_INVITE': ['/cgi-bin/batch/invite?access_token=ACCESS_TOKEN', 'POST'],
-
     'AGENT_GET': ['/cgi-bin/agent/get?access_token=ACCESS_TOKEN', 'GET'],
     'AGENT_SET': ['/cgi-bin/agent/set?access_token=ACCESS_TOKEN', 'POST'],
     'AGENT_GET_LIST': ['/cgi-bin/agent/list?access_token=ACCESS_TOKEN', 'GET'],
-
     'MENU_CREATE': ['/cgi-bin/menu/create?access_token=ACCESS_TOKEN', 'POST'],
     'MENU_GET': ['/cgi-bin/menu/get?access_token=ACCESS_TOKEN', 'GET'],
     'MENU_DELETE': ['/cgi-bin/menu/delete?access_token=ACCESS_TOKEN', 'GET'],
-
     'MESSAGE_SEND': ['/cgi-bin/message/send?access_token=ACCESS_TOKEN', 'POST'],
     'MESSAGE_REVOKE': ['/cgi-bin/message/revoke?access_token=ACCESS_TOKEN', 'POST'],
-
     'MEDIA_GET': ['/cgi-bin/media/get?access_token=ACCESS_TOKEN', 'GET'],
-
     'GET_USER_INFO_BY_CODE': ['/cgi-bin/user/getuserinfo?access_token=ACCESS_TOKEN', 'GET'],
     'GET_USER_DETAIL': ['/cgi-bin/user/getuserdetail?access_token=ACCESS_TOKEN', 'POST'],
-
     'GET_TICKET': ['/cgi-bin/ticket/get?access_token=ACCESS_TOKEN', 'GET'],
     'GET_JSAPI_TICKET': ['/cgi-bin/get_jsapi_ticket?access_token=ACCESS_TOKEN', 'GET'],
-
     'GET_CHECKIN_OPTION': ['/cgi-bin/checkin/getcheckinoption?access_token=ACCESS_TOKEN', 'POST'],
     'GET_CHECKIN_DATA': ['/cgi-bin/checkin/getcheckindata?access_token=ACCESS_TOKEN', 'POST'],
     'GET_APPROVAL_DATA': ['/cgi-bin/corp/getapprovaldata?access_token=ACCESS_TOKEN', 'POST'],
-
     'GET_INVOICE_INFO': ['/cgi-bin/card/invoice/reimburse/getinvoiceinfo?access_token=ACCESS_TOKEN', 'POST'],
     'UPDATE_INVOICE_STATUS':
         ['/cgi-bin/card/invoice/reimburse/updateinvoicestatus?access_token=ACCESS_TOKEN', 'POST'],
@@ -94,7 +80,8 @@ CORP_API_TYPE = {
 
 
 class WeWorkOps(AbstractApi):
-    def __init__(self, corp_id=WEWORK_CORP_ID, agent_id=WEWORK_AGENT_ID, agent_secret=WEWORK_AGNET_SECRET, storage=cache_storage, prefix='wework'):
+    def __init__(self, corp_id=WEWORK_CORP_ID, agent_id=WEWORK_AGENT_ID, agent_secret=WEWORK_AGNET_SECRET,
+                 storage=cache_storage, prefix='wework'):
         super().__init__()
         self.corp_id = corp_id
         self.agent_id = agent_id
@@ -172,38 +159,33 @@ class WeWorkOps(AbstractApi):
         临时授权码换取userinfo
         """
         _status, ticket_data = self.get_user_ticket_by_code_with_oauth2(code)
-        print('ticket_data ----------- ', ticket_data)
         # 判断 user_ticket 是否存在
         if not _status:
-            context = {
-                'msg': '获取userid失败，错误信息：{}'.format(ticket_data),
-                'button_click': "window.location.href='%s'" % home_url,
-                'button_display': "返回主页"
-            }
+            context = {'global_title': TITLE,
+                       'msg': '获取userid失败，错误信息：{}'.format(ticket_data),
+                       'button_click': "window.location.href='%s'" % home_url,
+                       'button_display': "返回主页"
+                       }
             return False, context, ticket_data
 
         user_id = ticket_data.get('userid')
         if ticket_data.get('user_ticket') is None:
-            context = {
-                'msg': '获取用户Ticket失败，当前扫码用户[{}]可能未加入企业！'.format(user_id),
-                'button_click': "window.location.href='%s'" % home_url,
-                'button_display': "返回主页"
-            }
+            context = {'global_title': TITLE,
+                       'msg': '获取用户Ticket失败，当前扫码用户[{}]可能未加入企业！'.format(user_id),
+                       'button_click': "window.location.href='%s'" % home_url,
+                       'button_display': "返回主页"
+                       }
             return False, context, user_id
 
         # 通过user_ticket获取企业微信用户详情信息
         detail_status, user_info = self.get_user_info_by_ticket_with_oauth2(ticket_data.get('user_ticket'))
         print("get_user_info_by_ticket_with_oauth2  --- ", user_info)
         if not detail_status:
-            context = {
-                'msg': '获取用户信息失败，错误信息：{}'.format(user_id),
-                'button_click': "window.location.href='%s'" % home_url,
-                'button_display': "返回主页"
-            }
+            context = {'global_title': TITLE,
+                       'msg': '获取用户信息失败，错误信息：{}'.format(user_id),
+                       'button_click': "window.location.href='%s'" % home_url,
+                       'button_display': "返回主页"
+                       }
             return False, context
         return True, user_id, user_info
 
-
-if __name__ == '__main__':
-    wx = WeWorkOps()
-    print(wx.get_user_detail_by_user_id('XiangLe'))

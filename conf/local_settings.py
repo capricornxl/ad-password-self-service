@@ -29,7 +29,7 @@ AD_CONN_PORT = 636
 # 验证的类型
 #       钉钉 / 企业微信，自行修改
 # 值是：DING /  WEWORK
-AUTH_CODE_TYPE = 'DING'
+INTEGRATION_APP_TYPE = 'WEWORK'
 
 # ########## 钉钉 《如果不使用钉钉，可不用配置》##########
 # 钉钉企业ID <CorpId>，修改为自己的
@@ -62,3 +62,5 @@ REDIS_PASSWORD = r'修改为自己的'
 # 主页域名，钉钉跳转等需要指定域名，格式：pwd.abc.com。
 # 如果是自定义安装，请修改成自己的域名
 HOME_URL = 'PWD_SELF_SERVICE_DOMAIN'
+# 标题
+TITLE = 'Self-Service'
