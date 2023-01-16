@@ -5,26 +5,33 @@
 
 # ########## AD配置，修改为自己的
 # AD主机，可以是IP或主机域名，例如可以是: abc.com或172.16.122.1
-AD_HOST = r'修改成自己的'
+LDAP_HOST = r'修改成自己的'
 
-# AD域控的DOMAIN，例如：比如你的域名是abc.com，那么这里的AD_DOMAIN就是：abc
+# AD域控的DOMAIN，例如：比如你的域名是abc.com，那么这里的LDAP_DOMAIN就是：abc
 # NTLM认证必须是domain\username
-AD_DOMAIN = r'修改成自己的'
+LDAP_DOMAIN = r'修改成自己的'
 
 # 用于登录AD做用户信息处理的账号，需要有修改用户账号密码或信息的权限。
 # AD账号，例如：pwdadmin
-AD_LOGIN_USER = r'修改成自己的'
+LDAP_LOGIN_USER = r'修改成自己的'
 # 密码
-AD_LOGIN_USER_PWD = r'修改为自己的'
+LDAP_LOGIN_USER_PWD = r'修改为自己的'
 
 # BASE DN，账号的查找DN路径，例如：'DC=abc,DC=com'，可以指定到OU之下，例如：'OU=RD,DC=abc,DC=com'。
 BASE_DN = r'修改成自己的'
 
+# ldap的search_filter，如果需要修改，请保持用户账号部分为 点位符{} (代码中通过占位符引入账号)
+# 例如，AD的用户账号属性是sAMAccountName，那么匹配的账号请配置成sAMAccountName={}
+#       LDAP中用户账号属性可能是uuid，那么匹配的账号请配置成uuid={}
+# 默认配置是AD环境的
+SEARCH_FILTER = r'(&(objectclass=user)(sAMAccountName={}))'
+
 # 是否启用SSL,
-# 注意：AD必须使用SSL才能修改密码（这里被坑了N久...）,自行部署下AD的证书服务，并颁发CA证书，重启服务器生效。具体教程百度一下，有很多。
-AD_USE_SSL = True
+# 注意：AD中必须使用SSL才能修改密码（这里被坑了N久...）,自行部署下AD的证书服务，并颁发CA证书，重启服务器生效。具体教程百度一下，有很多。
+# 如果使用Openldap，这里根据实际情况调整
+LDAP_USE_SSL = True
 # 连接的端口，如果启用SSL默认是636，否则就是389
-AD_CONN_PORT = 636
+LDAP_CONN_PORT = 636
 
 # 验证的类型
 #       钉钉 / 企业微信，自行修改
@@ -53,14 +60,8 @@ WEWORK_AGENT_ID = r'修改为自己的'
 # 应用的Secret
 WEWORK_AGNET_SECRET = r'修改为自己的'
 
-# Redis配置
-# redis的连接地址，redis://<Ip/Host>:<Port>
-REDIS_LOCATION = r'redis://127.0.0.1:6379'
-REDIS_PASSWORD = r'修改为自己的'
-
-
 # 主页域名，钉钉跳转等需要指定域名，格式：pwd.abc.com。
 # 如果是自定义安装，请修改成自己的域名
 HOME_URL = 'PWD_SELF_SERVICE_DOMAIN'
-# 标题
+# 平台显示的标题
 TITLE = 'Self-Service'

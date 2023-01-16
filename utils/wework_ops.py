@@ -163,8 +163,8 @@ class WeWorkOps(AbstractApi):
         if not _status:
             context = {'global_title': TITLE,
                        'msg': '获取userid失败，错误信息：{}'.format(ticket_data),
-                       'button_click': "window.location.href='%s'" % home_url,
-                       'button_display': "返回主页"
+                       'button_click': "window.location.href='%s'" % '/auth',
+                       'button_display': "重新认证授权"
                        }
             return False, context, ticket_data
 
@@ -173,7 +173,7 @@ class WeWorkOps(AbstractApi):
             context = {'global_title': TITLE,
                        'msg': '获取用户Ticket失败，当前扫码用户[{}]可能未加入企业！'.format(user_id),
                        'button_click': "window.location.href='%s'" % home_url,
-                       'button_display': "返回主页"
+                       'button_display': "返回修改密码"
                        }
             return False, context, user_id
 
@@ -183,8 +183,8 @@ class WeWorkOps(AbstractApi):
         if not detail_status:
             context = {'global_title': TITLE,
                        'msg': '获取用户信息失败，错误信息：{}'.format(user_id),
-                       'button_click': "window.location.href='%s'" % home_url,
-                       'button_display': "返回主页"
+                       'button_click': "window.location.href='%s'" % '/auth',
+                       'button_display': "重新认证授权"
                        }
             return False, context
         return True, user_id, user_info

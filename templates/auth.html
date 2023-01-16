@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block headerjs %}<script type="text/javascript" src="{% static 'js/dingtalk.open.js' %}"></script>{% endblock %}
+{% block paneltitle %}请稍后，授权信息认证中{% endblock %}
+{% block middleblock %}
+{% endblock %}
+{% block footerjs %}
+<script src="{% static 'layui/layui.js' %}"></script>
+<script>
+layui.use(['form', 'jquery', 'layer'], function () {
+let layer = layui.layer,
+    $ = layui.jquery;
+let re_url= ""
+let index_load = layer.load(1, {shade: 0.4});
+{% if app_type == 'DING' %}
+dd.ready(() => {
+    dd.runtime.permission.requestAuthCode({corpId: '{{ corp_id }}'}).then((result) => {
+        re_url = '/resetPassword?code=' + result.code
+        window.parent.parent.location.href=re_url;
+    }).catch(err => {
+        layer.close(index_load)
+        layer.open({
+            title : '出错啦！'
+            ,content: err
+            ,btn: '关闭'
+            ,btnAlign: 'c'
+            ,yes: function(){
+              layer.closeAll();
+            }
+        });
+    });
+});
+{% elif app_type == 'WEWORK' %}
+$(function () {
+    re_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid={{ app_id }}&agentid={{ agent_id }}&redirect_uri={{ redirect_url }}&response_type=code&scope=snsapi_privateinfo&state=#wechat_redirect"
+    window.parent.parent.location.href=re_url;
+})
+{% endif %}
+});
+</script>
+{% endblock %}
