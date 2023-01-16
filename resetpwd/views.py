@@ -43,10 +43,7 @@ scan_params = PARAMS()
 _ops = scan_params.ops
 
 
-def index(request):
-    """
-    用户自行修改密码/首页
-    """
+def auth(request):
     home_url = '%s://%s' % (request.scheme, HOME_URL)
     corp_id = scan_params.corp_id
     app_id = scan_params.app_id
@@ -55,6 +52,29 @@ def index(request):
     unsecpwd = settings.UN_SEC_PASSWORD
     redirect_url = url_encode.quote(home_url + '/resetPassword')
     app_type = INTEGRATION_APP_TYPE
+    global_title = TITLE
+
+    if request.method == 'GET':
+        code = request.GET.get('code', None)
+        username = request.GET.get('username', None)
+        # 如果满足，说明已经授权免密登录
+        if username and code and request.session.get(username) == code:
+            context = {'global_title': TITLE,
+                       'username': username,
+                       'code': code,
+                       }
+            return render(request, 'reset_password.html', context)
+        return render(request, 'auth.html', locals())
+    else:
+        logger.error('[异常]  请求方法：%s，请求路径%s' % (request.method, request.path))
+
+
+def index(request):
+    """
+    用户自行修改密码/首页
+    """
+    home_url = '%s://%s' % (request.scheme, HOME_URL)
+    scan_app = scan_params.AUTH_APP
     global_title = TITLE
 
     if request.method == 'GET':
@@ -75,8 +95,8 @@ def index(request):
             logger.error('[异常]  请求方法：%s，请求路径：%s，错误信息：%s' % (request.method, request.path, _msg))
             context = {'global_title': TITLE,
                        'msg': _msg,
-                       'button_click': "window.location.href='%s'" % home_url,
-                       'button_display': "返回主页"
+                       'button_click': "window.location.href='%s'" % '/auth',
+                       'button_display': "重新认证授权"
                        }
             return render(request, msg_template, context)
         # 格式化用户名
@@ -84,8 +104,8 @@ def index(request):
         if _ is False:
             context = {'global_title': TITLE,
                        'msg': username,
-                       'button_click': "window.location.href='%s'" % home_url,
-                       'button_display': "返回主页"
+                       'button_click': "window.location.href='%s'" % '/auth',
+                       'button_display': "重新认证授权"
                        }
             return render(request, msg_template, context)
         # 检测账号状态
@@ -93,16 +113,16 @@ def index(request):
         if not auth_status:
             context = {'global_title': TITLE,
                        'msg': str(auth_result),
-                       'button_click': "window.location.href='%s'" % home_url,
-                       'button_display': "返回主页"
+                       'button_click': "window.location.href='%s'" % '/auth',
+                       'button_display': "重新认证授权"
                        }
             return render(request, msg_template, context)
         return ops_account(AdOps(), request, msg_template, home_url, username, new_password)
     else:
         context = {'global_title': TITLE,
-                   'msg': "请从主页进行修改密码操作或扫码验证用户信息。",
-                   'button_click': "window.location.href='%s'" % home_url,
-                   'button_display': "返回主页"
+                   'msg': "不被接受的认证信息，请重新尝试认证授权。",
+                   'button_click': "window.location.href='%s'" % '/auth',
+                   'button_display': "重新认证授权"
                    }
         return render(request, msg_template, context)
 
@@ -130,9 +150,9 @@ def reset_password(request):
             else:
                 logger.error('[异常]  请求方法：%s，请求路径：%s，未能拿到Code。' % (request.method, request.path))
                 context = {'global_title': TITLE,
-                           'msg': "错误，临时授权码己失效，请从主页重新开始登录授权..",
-                           'button_click': "window.location.href='%s'" % home_url,
-                           'button_display': "返回主页"
+                           'msg': "错误，临时授权码己失效，请尝试重新认证授权..",
+                           'button_click': "window.location.href='%s'" % '/auth',
+                           'button_display': "重新认证授权"
                            }
                 return render(request, msg_template, context)
             try:
@@ -163,8 +183,8 @@ def reset_password(request):
             if not _:
                 context = {'global_title': TITLE,
                            'msg': email,
-                           'button_click': "window.location.href='%s'" % home_url,
-                           'button_display': "返回主页"
+                           'button_click': "window.location.href='%s'" % '/auth',
+                           'button_display': "重新认证授权"
                            }
                 return render(request, msg_template, context)
 
@@ -172,8 +192,8 @@ def reset_password(request):
             if _ is False:
                 context = {'global_title': TITLE,
                            'msg': username,
-                           'button_click': "window.location.href='%s'" % home_url,
-                           'button_display': "返回主页"
+                           'button_click': "window.location.href='%s'" % '/auth',
+                           'button_display': "重新认证授权"
                            }
                 return render(request, msg_template, context)
 
@@ -189,8 +209,8 @@ def reset_password(request):
                 context = {'global_title': TITLE,
                            'msg': "{}，您好，企业{}中未能找到您账号的邮箱配置，请联系HR完善信息。".format(
                                user_info.get('name'), scan_params.AUTH_APP),
-                           'button_click': "window.location.href='%s'" % home_url,
-                           'button_display': "返回主页"
+                           'button_click': "window.location.href='%s'" % '/auth',
+                           'button_display': "重新认证授权"
                            }
                 return render(request, msg_template, context)
 
@@ -215,9 +235,9 @@ def reset_password(request):
                 del request.session[username]
     else:
         context = {'global_title': TITLE,
-                   'msg': "认证已经失效，请从主页重新进行操作。",
-                   'button_click': "window.location.href='%s'" % home_url,
-                   'button_display': "返回主页"
+                   'msg': "认证已经失效，可尝试从重新认证授权。",
+                   'button_click': "window.location.href='%s'" % '/auth',
+                   'button_display': "重新认证授权"
                    }
         return render(request, msg_template, context)
 
@@ -242,8 +262,8 @@ def unlock_account(request):
         else:
             context = {'global_title': TITLE,
                        'msg': "{}，您好，当前会话可能已经过期，请再试一次吧。".format(username),
-                       'button_click': "window.location.href='%s'" % home_url,
-                       'button_display': "返回主页"
+                       'button_click': "window.location.href='%s'" % '/auth',
+                       'button_display': "重新认证授权"
                        }
             return render(request, msg_template, context)
 
@@ -265,9 +285,9 @@ def unlock_account(request):
                 del request.session[username]
     else:
         context = {'global_title': TITLE,
-                   'msg': "认证已经失效，请从主页重新进行操作。",
-                   'button_click': "window.location.href='%s'" % home_url,
-                   'button_display': "返回主页"
+                   'msg': "认证已经失效，请尝试从重新进行认证授权。",
+                   'button_click': "window.location.href='%s'" % '/auth',
+                   'button_display': "重新认证授权"
                    }
         return render(request, msg_template, context)
 

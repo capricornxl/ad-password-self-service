@@ -91,7 +91,7 @@ def ops_account(ad_ops, request, msg_template, home_url, username, new_password)
                 unlock_status, result = ad_ops.ad_unlock_user_by_account(username)
                 if unlock_status:
                     context = {'global_title': TITLE,
-                               'msg': "密码己修改成功，请妥善保管。你可以点击返回主页或直接关闭此页面！",
+                               'msg': "密码己修改成功，请妥善保管。你可以点击修改密码或直接关闭此页面！",
                                'button_click': "window.location.href='%s'" % home_url,
                                'button_display': "返回主页"
                                }
@@ -99,8 +99,8 @@ def ops_account(ad_ops, request, msg_template, home_url, username, new_password)
             else:
                 context = {'global_title': TITLE,
                            'msg': "密码未修改/重置成功，错误信息：{}".format(result),
-                           'button_click': "window.location.href='%s'" % home_url,
-                           'button_display': "返回主页"
+                           'button_click': "window.location.href='%s'" % '/auth',
+                           'button_display': "重新认证授权"
                            }
                 return render(request, msg_template, context)
         else:
@@ -115,14 +115,14 @@ def ops_account(ad_ops, request, msg_template, home_url, username, new_password)
             else:
                 context = {'global_title': TITLE,
                            'msg': "账号未能解锁，错误信息：{}".format(result),
-                           'button_click': "window.location.href='%s'" % home_url,
-                           'button_display': "返回主页"
+                           'button_click': "window.location.href='%s'" % '/auth',
+                           'button_display': "重新认证授权"
                            }
                 return render(request, msg_template, context)
     except LDAPException as l_e:
         context = {'global_title': TITLE,
                    'msg': "账号未能解锁，错误信息：{}".format(l_e),
-                   'button_click': "window.location.href='%s'" % home_url,
-                   'button_display': "返回主页"
+                   'button_click': "window.location.href='%s'" % '/auth',
+                   'button_display': "重新认证授权"
                    }
         return render(request, msg_template, context)

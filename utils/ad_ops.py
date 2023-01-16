@@ -1,4 +1,3 @@
-import ldap3
 from ldap3 import *
 from ldap3.core.exceptions import LDAPInvalidCredentialsResult, LDAPOperationResult, LDAPExceptionError, LDAPException, \
     LDAPSocketOpenError
@@ -38,8 +37,8 @@ unicodePwd 属性的语法为 octet-string;但是，目录服务预期八进制�
 
 class AdOps(object):
 
-    def __init__(self, auto_bind=True, use_ssl=AD_USE_SSL, port=AD_CONN_PORT, domain=AD_DOMAIN, user=AD_LOGIN_USER,
-                 password=AD_LOGIN_USER_PWD,
+    def __init__(self, auto_bind=True, use_ssl=LDAP_USE_SSL, port=LDAP_CONN_PORT, domain=LDAP_DOMAIN, user=LDAP_LOGIN_USER,
+                 password=LDAP_LOGIN_USER_PWD,
                  authentication=NTLM):
         """
         AD连接器 authentication  [SIMPLE, ANONYMOUS, SASL, NTLM]
@@ -60,7 +59,7 @@ class AdOps(object):
     def __server(self):
         if self.server is None:
             try:
-                self.server = Server(host='%s' % AD_HOST, connect_timeout=1, use_ssl=self.use_ssl, port=self.port,
+                self.server = Server(host='%s' % LDAP_HOST, connect_timeout=1, use_ssl=self.use_ssl, port=self.port,
                                      get_info=ALL)
             except LDAPInvalidCredentialsResult as lic_e:
                 return False, LDAPOperationResult("LDAPInvalidCredentialsResult: " + str(lic_e.message))
@@ -118,7 +117,7 @@ class AdOps(object):
                 # return False, '用户登陆前必须修改密码！'
                 # 设置该账号下次登陆不需要更改密码，再验证一次
                 self.__conn()
-                self.conn.search(search_base=BASE_DN, search_filter='(sAMAccountName={}))'.format(username),
+                self.conn.search(search_base=BASE_DN, search_filter=SEARCH_FILTER.format(username),
                                  attributes=['pwdLastSet'])
                 self.conn.modify(self.conn.entries[0].entry_dn, {'pwdLastSet': [(MODIFY_REPLACE, ['-1'])]})
                 return True, self.ad_auth_user(username, password)
@@ -135,7 +134,7 @@ class AdOps(object):
         """
         try:
             self.__conn()
-            return True, self.conn.search(BASE_DN, '(&(objectclass=user)(sAMAccountName={}))'.format(username),
+            return True, self.conn.search(BASE_DN, SEARCH_FILTER.format(username),
                                           attributes=['sAMAccountName'])
         except Exception as e:
             return False, "AdOps Exception: {}".format(e)
@@ -148,7 +147,7 @@ class AdOps(object):
         """
         try:
             self.__conn()
-            self.conn.search(BASE_DN, '(&(objectclass=user)(sAMAccountName={}))'.format(username), attributes=['name'])
+            self.conn.search(BASE_DN, SEARCH_FILTER.format(username), attributes=['name'])
             return True, self.conn.entries[0]['name']
         except Exception as e:
             return False, "AdOps Exception: {}".format(e)
@@ -161,7 +160,7 @@ class AdOps(object):
         """
         try:
             self.__conn()
-            self.conn.search(BASE_DN, '(&(objectclass=user)(sAMAccountName={}))'.format(username),
+            self.conn.search(BASE_DN, SEARCH_FILTER.format(username),
                              attributes=['distinguishedName'])
             return True, str(self.conn.entries[0]['distinguishedName'])
         except Exception as e:
@@ -175,7 +174,7 @@ class AdOps(object):
         """
         try:
             self.__conn()
-            self.conn.search(BASE_DN, '(&(objectclass=user)(sAMAccountName={}))'.format(username),
+            self.conn.search(BASE_DN, SEARCH_FILTER.format(username),
                              attributes=['userAccountControl'])
             return True, self.conn.entries[0]['userAccountControl']
         except Exception as e:
@@ -241,7 +240,7 @@ class AdOps(object):
         """
         try:
             self.__conn()
-            self.conn.search(BASE_DN, '(&(objectclass=user)(sAMAccountName={}))'.format(username),
+            self.conn.search(BASE_DN, SEARCH_FILTER.format(username),
                              attributes=['lockoutTime'])
             locked_status = self.conn.entries[0]['lockoutTime']
             if '1601-01-01' in str(locked_status):

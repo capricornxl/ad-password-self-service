@@ -34,7 +34,7 @@
         </div>
         <div class="layui-form-item a-middle-text">
             <span class="layui-breadcrumb">
-            <a class="layui-text" id="redirect_url" href=""><i class="layui-icon layui-icon-refresh-3"></i> 重置/解锁账号</a>
+            <a class="layui-text" id="redirect_url" href="/auth"><i class="layui-icon layui-icon-refresh-3"></i> 重置/解锁账号</a>
             </span>
         </div>
     </form>
@@ -53,39 +53,7 @@
 <script>
 layui.use(['form', 'jquery', 'layer'], function () {
     let form = layui.form,
-        layer = layui.layer,
         $ = layui.jquery;
-    if ('{{ app_type }}' === 'DING') {
-        let re_url= ""
-        window.onload = function () {
-            if (dd.env.platform !== 'notInDingTalk') {
-                dd.ready(() => {
-                    dd.runtime.permission.requestAuthCode({corpId: '{{ corp_id }}'}).then((result) => {
-                        re_url = '/resetPassword?code=' + result.code
-                    }).catch(err => {
-                        console.log(err);
-                    }).finally(() => {
-                        document.getElementById("redirect_url").setAttribute("href", re_url)
-                    })
-                });
-            } else {
-                layer.open({
-                    title : '出错啦！'
-                    ,content: '请在钉钉中打开本页面~~'
-                    ,btn: '关闭'
-                    ,btnAlign: 'c'
-                    ,yes: function(){
-                      layer.closeAll();
-                    }
-                });
-            }
-        }
-    } else if ('{{ app_type }}' === 'WEWORK') {
-        let re_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid={{ app_id }}&agentid={{ agent_id }}&redirect_uri={{ redirect_url }}&response_type=code&scope=snsapi_privateinfo&state=#wechat_redirect"
-        window.onload = function () {
-            document.getElementById("redirect_url").setAttribute("href", re_url)
-        }
-    }
     form.verify({
         pass: [
             /^(?=.*[0-9])(?=.*[a-zA-Z])(?=.*[^a-zA-Z0-9]).{8,30}$/,
@@ -94,14 +62,11 @@ layui.use(['form', 'jquery', 'layer'], function () {
         repass: function (value,item) {
             if ($('#ensure_password').val() !== $('#new_password').val()) {
                 return '两次输入密码不一致！';
-            }
-        },
+            }},
         newpass: function (value,item) {
             if ($('#old_password').val() === $('#password').val()) {
                 return '新旧密码不能重复使用，请修正！';
-            }
-        }
-        });
+            }}});
 });
 </script>
 {% endblock %}

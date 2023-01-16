@@ -181,21 +181,6 @@ else
     fi
 fi
 
-
-yum install -y redis
-if [[ $? -eq 0 ]]; then
-    gen_password=$(echo "$(hostname)$(date)" |base64)
-    sed -i 's@^requirepass.*@@g' /etc/redis.conf
-    sed -i "/# requirepass foobared/a requirepass ${gen_password}" /etc/redis.conf
-    systemctl restart redis
-    sed -i "s@REDIS_PASSWORD.*@REDIS_PASSWORD = r'${gen_password}'@g" ${SHELL_FOLDER}/conf/local_settings.py
-    echo "安装 redis-server 成功"
-    echo "Redis Server密码是：${gen_password}，可在/etc/redis.conf中查到"
-else
-    echo "安装 redis-server 失败，请重新运行本脚本再试"
-fi
-
-
 ##修改PIP源为国内
 mkdir -p ~/.pip
 cat << EOF > ~/.pip/pip.conf
