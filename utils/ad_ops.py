@@ -136,6 +136,8 @@ class AdOps(object):
             self.__conn()
             return True, self.conn.search(BASE_DN, SEARCH_FILTER.format(username),
                                           attributes=['sAMAccountName'])
+        except IndexError:
+            return False, "AdOps Exception: Connect.search未能检索到任何信息，当前账号可能被排除在<SEARCH_FILTER>之外，请联系管理员处理。"
         except Exception as e:
             return False, "AdOps Exception: {}".format(e)
 
@@ -149,6 +151,8 @@ class AdOps(object):
             self.__conn()
             self.conn.search(BASE_DN, SEARCH_FILTER.format(username), attributes=['name'])
             return True, self.conn.entries[0]['name']
+        except IndexError:
+            return False, "AdOps Exception: Connect.search未能检索到任何信息，当前账号可能被排除在<SEARCH_FILTER>之外，请联系管理员处理。"
         except Exception as e:
             return False, "AdOps Exception: {}".format(e)
 
@@ -163,6 +167,8 @@ class AdOps(object):
             self.conn.search(BASE_DN, SEARCH_FILTER.format(username),
                              attributes=['distinguishedName'])
             return True, str(self.conn.entries[0]['distinguishedName'])
+        except IndexError:
+            return False, "AdOps Exception: Connect.search未能检索到任何信息，当前账号可能被排除在<SEARCH_FILTER>之外，请联系管理员处理。"
         except Exception as e:
             return False, "AdOps Exception: {}".format(e)
 
@@ -177,6 +183,8 @@ class AdOps(object):
             self.conn.search(BASE_DN, SEARCH_FILTER.format(username),
                              attributes=['userAccountControl'])
             return True, self.conn.entries[0]['userAccountControl']
+        except IndexError:
+            return False, "AdOps Exception: Connect.search未能检索到任何信息，当前账号可能被排除在<SEARCH_FILTER>之外，请联系管理员处理。"
         except Exception as e:
             return False, "AdOps Exception: {}".format(e)
 
@@ -190,6 +198,8 @@ class AdOps(object):
         if _status:
             try:
                 return True, self.conn.extend.microsoft.unlock_account(user='%s' % user_dn)
+            except IndexError:
+                return False, "AdOps Exception: Connect.search未能检索到任何信息，当前账号可能被排除在<SEARCH_FILTER>之外，请联系管理员处理。"
             except Exception as e:
                 return False, "AdOps Exception: {}".format(e)
         else:
@@ -247,5 +257,7 @@ class AdOps(object):
                 return True, 'unlocked'
             else:
                 return False, locked_status
+        except IndexError:
+            return False, "AdOps Exception: Connect.search未能检索到任何信息，当前账号可能被排除在<SEARCH_FILTER>之外，请联系管理员处理。"
         except Exception as e:
             return False, "AdOps Exception: {}".format(e)

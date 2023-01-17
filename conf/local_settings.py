@@ -18,13 +18,16 @@ LDAP_LOGIN_USER = r'修改成自己的'
 LDAP_LOGIN_USER_PWD = r'修改为自己的'
 
 # BASE DN，账号的查找DN路径，例如：'DC=abc,DC=com'，可以指定到OU之下，例如：'OU=RD,DC=abc,DC=com'。
+# BASE_DN限制得越细，搜索用户的目录也就越小，一般情况下可以通过SEARCH_FILTER来过滤
 BASE_DN = r'修改成自己的'
 
-# ldap的search_filter，如果需要修改，请保持用户账号部分为 点位符{} (代码中通过占位符引入账号)
-# 例如，AD的用户账号属性是sAMAccountName，那么匹配的账号请配置成sAMAccountName={}
-#       LDAP中用户账号属性可能是uuid，那么匹配的账号请配置成uuid={}
-# 默认配置是AD环境的
-SEARCH_FILTER = r'(&(objectclass=user)(sAMAccountName={}))'
+# ldap的search_filter，如果需要修改，请保持用户账号部分为 点位符{0} (代码中通过占位符引入账号)
+# 例如，AD的用户账号属性是sAMAccountName，那么匹配的账号请配置成sAMAccountName={0}
+#       LDAP中用户账号属性可能是uuid，那么匹配的账号请配置成uuid={0}
+#       如果想限制用户在哪个组的才能使用，可以写成这样：
+#       r'(&(objectClass=user)(memberof=CN=mis,OU=Groups,OU=OnTheJob,DC=abc,DC=com)(sAMAccountName={0}))', memberof 是需要匹配的组
+# 默认配置是AD环境的，查询语句可以自行使用Apache Directory Studio测试后再配置
+SEARCH_FILTER = r'(&(objectclass=user)(sAMAccountName={0}))'
 
 # 是否启用SSL,
 # 注意：AD中必须使用SSL才能修改密码（这里被坑了N久...）,自行部署下AD的证书服务，并颁发CA证书，重启服务器生效。具体教程百度一下，有很多。
