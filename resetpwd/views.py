@@ -3,12 +3,12 @@ import logging
 import os
 from django.shortcuts import render
 from utils.ad_ops import AdOps
-from ldap3.core.exceptions import LDAPException
 import urllib.parse as url_encode
 from utils.format_username import format2username, get_user_is_active, get_email_from_userinfo
 from .form import CheckForm
 from .utils import code_2_user_detail, ops_account
 from django.conf import settings
+from utils.logger_filter import decorator_request_logger
 
 APP_ENV = os.getenv('APP_ENV')
 if APP_ENV == 'dev':
@@ -43,6 +43,7 @@ scan_params = PARAMS()
 _ops = scan_params.ops
 
 
+@decorator_request_logger(logger)
 def auth(request):
     home_url = '%s://%s' % (request.scheme, HOME_URL)
     corp_id = scan_params.corp_id
@@ -69,6 +70,7 @@ def auth(request):
         logger.error('[异常]  请求方法：%s，请求路径%s' % (request.method, request.path))
 
 
+@decorator_request_logger(logger)
 def index(request):
     """
     用户自行修改密码/首页
@@ -79,10 +81,8 @@ def index(request):
 
     if request.method == 'GET':
         return render(request, 'index.html', locals())
-    else:
-        logger.error('[异常]  请求方法：%s，请求路径%s' % (request.method, request.path))
 
-    if request.method == 'POST':
+    elif request.method == 'POST':
         # 对前端提交的数据进行二次验证，防止恶意提交简单密码或篡改账号。
         check_form = CheckForm(request.POST)
         if check_form.is_valid():
@@ -127,6 +127,7 @@ def index(request):
         return render(request, msg_template, context)
 
 
+@decorator_request_logger(logger)
 def reset_password(request):
     """
     钉钉扫码并验证信息通过之后，在重置密码页面将用户账号进行绑定
@@ -242,6 +243,7 @@ def reset_password(request):
         return render(request, msg_template, context)
 
 
+@decorator_request_logger(logger)
 def unlock_account(request):
     """
     解锁账号
@@ -292,6 +294,7 @@ def unlock_account(request):
         return render(request, msg_template, context)
 
 
+@decorator_request_logger(logger)
 def messages(request):
     _msg = request.GET.get('msg')
     button_click = request.GET.get('button_click')

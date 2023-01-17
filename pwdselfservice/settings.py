@@ -30,11 +30,10 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': '%(asctime)s %(levelname)s %(pathname)s %(module)s.%(funcName)s %(lineno)d: %(message)s'
-            # 日志格式
+            'format': '%(asctime)s %(levelname)s %(message)s'
         },
         'simple': {
-            'format': '%(asctime)s %(levelname)s %(pathname)s %(module)s.%(funcName)s %(lineno)d: %(message)s'
+            'format': '%(asctime)s %(levelname)s %(message)s'
         },
     },
     'filters': {
@@ -54,7 +53,7 @@ LOGGING = {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
             # 日志保存文件
-            'filename': '%s/log.log' % LOG_PATH,
+            'filename': '%s/all.log' % LOG_PATH,
             # 日志格式，与上边的设置对应选择
             'formatter': 'verbose'
                 }
