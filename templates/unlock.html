@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block paneltitle %}解锁账号{% endblock %}
+{% block middleblock %}
+<div class="layui-row">
+    <form class="layui-form  layui-form-pane" name="unlockAccount" method="post" action="unlockAccount" autocomplete="off">{% csrf_token %}
+        <div class="layui-form-item">
+            <label class="layui-form-label">账号</label>
+            <div class="layui-input-block">
+                <input type="text" name="username" lay-verify="required" lay-verType="tips" autocomplete="off" readonly value="{{ username }}" class="layui-input">
+                <input type="hidden" id="code" name="code" readonly value="{{ code }}">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <button type="submit" lay-submit="" class="layui-btn layui-btn-normal layui-btn-fluid">立即提交</button>
+        </div>
+        <div class="layui-form-item a-middle-text">
+            <span class="layui-breadcrumb">
+            <a class="layui-text" href="/"><i class="layui-icon layui-icon-prev"></i> 修改密码</a>
+            <a class="layui-text" id="redirect_url" href="/resetPassword?code={{ code }}&username={{ username }}"><i class="layui-icon layui-icon-refresh-1"></i> 重置密码</a>
+            </span>
+        </div>
+    </form>
+</div>
+{% endblock %}
+{% block middleblockfoot %}
+<blockquote class="layui-elem-quote layui-quote-nm">
+    新密码8至30位长度，要求包含大小写字母及数字。
+    <p>会话有效期5分钟</p>
+</blockquote>
+{% endblock %}

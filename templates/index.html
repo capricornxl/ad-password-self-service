@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block headerjs %}<script type="text/javascript" src="{% static 'js/dingtalk.open.js' %}"></script>{% endblock %}
+{% block paneltitle %}修改密码{% endblock %}
+{% block middleblock %}
+<div class="layui-row">
+    <form class="layui-form  layui-form-pane" action="/" method="post" autocomplete="off">{% csrf_token %}
+        <div class="layui-form-item">
+            <label class="layui-form-label">账号</label>
+            <div class="layui-input-block">
+                <input type="text" name="username" lay-verify="required" lay-verType="tips" autocomplete="off" placeholder="请输入账号" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">旧密码</label>
+            <div class="layui-input-block">
+                <input type="password" lay-verify="required|newpass" lay-verType="tips" name="old_password" id="old_password" placeholder="请输入旧密码" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">新密码</label>
+            <div class="layui-input-block">
+                <input type="password" lay-verify="pass" lay-verType="tips" name="new_password" id="new_password" placeholder="请输入新密码"  autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">确认密码</label>
+            <div class="layui-input-block">
+                <input type="password" lay-verify="pass|repass" lay-verType="tips" name="ensure_password" id="ensure_password" placeholder="再次确认新密码" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <button type="submit" lay-submit="" class="layui-btn layui-btn-normal layui-btn-fluid">立即提交</button>
+        </div>
+        <div class="layui-form-item a-middle-text">
+            <span class="layui-breadcrumb">
+            <a class="layui-text" id="redirect_url" href="/auth"><i class="layui-icon layui-icon-refresh-3"></i> 重置/解锁账号</a>
+            </span>
+        </div>
+    </form>
+</div>
+{% endblock %}
+{% block middleblockfoot %}
+<blockquote class="layui-elem-quote layui-quote-nm">
+    新密码8至30位长度，要求包含大小写字母及数字。<br><br>
+    如果密码己遗忘，可点击上方<b>[<i class="layui-icon layui-icon-refresh-3"></i> 重置/解锁账号]</b>使用⌊{{ scan_app }}⌉应用内免登录授权并通过身份验证后进行重置/解锁账号。<br>
+    * 如果有当弹出提示<b>是否同意授权</b>时，请务必<b>全部同意</b>，否则无法获取关键信息，导致无法正常使用重置/解锁账号！
+</blockquote>
+{% endblock %}
+{% block footercss %}{% endblock %}
+{% block footerjs %}
+<script src="{% static 'layui/layui.js' %}"></script>
+<script>
+layui.use(['form', 'jquery', 'layer'], function () {
+    let form = layui.form,
+        $ = layui.jquery;
+    form.verify({
+        pass: [
+            /^(?=.*[0-9])(?=.*[a-zA-Z])(?=.*[^a-zA-Z0-9]).{8,30}$/,
+            '密码必须8到30位，要求包含大小写字母、数字与字符，且不能出现空格！'
+        ],
+        repass: function (value,item) {
+            if ($('#ensure_password').val() !== $('#new_password').val()) {
+                return '两次输入密码不一致！';
+            }},
+        newpass: function (value,item) {
+            if ($('#old_password').val() === $('#password').val()) {
+                return '新旧密码不能重复使用，请修正！';
+            }}});
+});
+</script>
+{% endblock %}
