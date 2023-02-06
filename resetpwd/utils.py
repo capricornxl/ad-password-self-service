@@ -11,6 +11,7 @@ import logging
 from ldap3.core.exceptions import LDAPException
 from django.conf import settings
 import os
+from utils.tracecalls import decorator_logger
 
 APP_ENV = os.getenv('APP_ENV')
 if APP_ENV == 'dev':
@@ -18,9 +19,10 @@ if APP_ENV == 'dev':
 else:
     from conf.local_settings import *
 
-logger = logging.getLogger('django')
+logger = logging.getLogger(__name__)
 
 
+@decorator_logger(logger, log_head='AccountOps', pretty=True, indent=2, verbose=1)
 def code_2_user_detail(ops, home_url, code):
     """
     临时授权码换取userinfo
@@ -29,6 +31,7 @@ def code_2_user_detail(ops, home_url, code):
     return _, s, e
 
 
+@decorator_logger(logger, log_head='AccountOps', pretty=True, indent=2, verbose=1)
 def code_2_user_info_with_oauth2(ops, request, msg_template, home_url, code):
     """
     临时授权码换取userinfo
@@ -53,6 +56,7 @@ def code_2_user_info_with_oauth2(ops, request, msg_template, home_url, code):
     return True, user_id, user_info
 
 
+@decorator_logger(logger, log_head='AccountOps', pretty=True, indent=2, verbose=1)
 def ops_account(ad_ops, request, msg_template, home_url, username, new_password):
     """
     ad 账号操作，判断账号状态，重置密码或解锁账号

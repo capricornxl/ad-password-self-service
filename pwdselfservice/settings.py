@@ -1,4 +1,6 @@
+import logging.config
 import os
+from django.utils.log import DEFAULT_LOGGING
 
 APP_ENV = os.getenv('APP_ENV')
 if APP_ENV == 'dev':
@@ -24,49 +26,49 @@ LOG_PATH = os.path.join(BASE_DIR, 'log')
 if not os.path.isdir(LOG_PATH):
     os.mkdir(LOG_PATH)
 
-LOGGING = {
+# Disable Django's logging setup
+LOGGING_CONFIG = None
+
+LOGLEVEL = os.environ.get('LOGLEVEL', 'info').upper()
+
+logging.config.dictConfig({
     'version': 1,
-    # 此选项开启表示禁用部分日志，不建议设置为True
     'disable_existing_loggers': False,
     'formatters': {
-        'verbose': {
-            'format': '%(asctime)s %(levelname)s %(message)s'
+        'default': {
+            # exact format is not important, this is the minimum information
+            "format": "%(asctime)s %(module)s %(levelname)s -%(thread)d- %(message)s"
         },
-        'simple': {
-            'format': '%(asctime)s %(levelname)s %(message)s'
-        },
-    },
-    'filters': {
-        'require_debug_true': {
-            # 过滤器，只有当setting的DEBUG = True时生效
-            '()': 'django.utils.log.RequireDebugTrue',
-        },
+        'django.server': DEFAULT_LOGGING['formatters']['django.server'],
     },
     'handlers': {
+        # console logs to stderr
         'console': {
-            'level': 'DEBUG',
-            'filters': ['require_debug_true'],
+            "level": "DEBUG",
             'class': 'logging.StreamHandler',
-            'formatter': 'verbose'
+            'formatter': 'default',
         },
         'file': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            # 日志保存文件
-            'filename': '%s/all.log' % LOG_PATH,
-            # 日志格式，与上边的设置对应选择
-            'formatter': 'verbose'
-                }
+            'level': "DEBUG",
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(LOG_PATH, "all.log"),
+            'formatter': 'default',
+            'maxBytes': 1024 * 1024 * 50,  # 日志大小 10M
+            'backupCount': 24,  # 备份数为 2# 简单格式
+            'encoding': 'utf-8',
+        },
+        'django.server': DEFAULT_LOGGING['handlers']['django.server'],
     },
     'loggers': {
-        'django': {
-            # 日志记录器
+        # default for all undefined Python modules
+        '': {
+            'level': LOGLEVEL,
             'handlers': ['file'],
-            'level': 'DEBUG',
-            'propagate': True,
-        }
+        },
+        # Default runserver request logging
+        'django.server': DEFAULT_LOGGING['loggers']['django.server'],
     },
-}
+})
 
 
 # SESSION

@@ -4,12 +4,16 @@ from ldap3.core.exceptions import LDAPInvalidCredentialsResult, LDAPOperationRes
 from ldap3.core.results import *
 from ldap3.utils.dn import safe_dn
 import os
+from utils.tracecalls import decorator_logger
+import logging
 
 APP_ENV = os.getenv('APP_ENV')
 if APP_ENV == 'dev':
     from conf.local_settings_dev import *
 else:
     from conf.local_settings import *
+
+logger = logging.getLogger(__name__)
 
 """
 根据以下网站的说明：
@@ -86,6 +90,7 @@ class AdOps(object):
             except LDAPException as l_e:
                 return False, LDAPException("LDAPException: " + str(l_e))
 
+    @decorator_logger(logger, log_head='AdOps', pretty=True, indent=2, verbose=1)
     def ad_auth_user(self, username, password):
         """
         验证账号
@@ -141,6 +146,7 @@ class AdOps(object):
         except Exception as e:
             return False, "AdOps Exception: {}".format(e)
 
+    @decorator_logger(logger, log_head='AdOps', pretty=True, indent=2, verbose=1)
     def ad_get_user_displayname_by_account(self, username):
         """
         通过username查询某个用户的显示名
@@ -156,6 +162,7 @@ class AdOps(object):
         except Exception as e:
             return False, "AdOps Exception: {}".format(e)
 
+    @decorator_logger(logger, log_head='AdOps', pretty=True, indent=2, verbose=1)
     def ad_get_user_dn_by_account(self, username):
         """
         通过username查询某个用户的完整DN
@@ -168,10 +175,14 @@ class AdOps(object):
                              attributes=['distinguishedName'])
             return True, str(self.conn.entries[0]['distinguishedName'])
         except IndexError:
+            logger.error("AdOps Exception: Connect.search未能检索到任何信息，当前账号可能被排除在<SEARCH_FILTER>之外，请联系管理员处理。")
+            logger.error("self.conn.search(BASE_DN, {}, attributes=['distinguishedName'])".format(SEARCH_FILTER.format(username)))
             return False, "AdOps Exception: Connect.search未能检索到任何信息，当前账号可能被排除在<SEARCH_FILTER>之外，请联系管理员处理。"
         except Exception as e:
+            logger.error("AdOps Exception: {}".format(e))
             return False, "AdOps Exception: {}".format(e)
 
+    @decorator_logger(logger, log_head='AdOps', pretty=True, indent=2, verbose=1)
     def ad_get_user_status_by_account(self, username):
         """
         通过username查询某个用户的账号状态
@@ -180,14 +191,18 @@ class AdOps(object):
         """
         try:
             self.__conn()
-            self.conn.search(BASE_DN, SEARCH_FILTER.format(username),
-                             attributes=['userAccountControl'])
+            self.conn.search(BASE_DN, SEARCH_FILTER.format(username), attributes=['userAccountControl'])
             return True, self.conn.entries[0]['userAccountControl']
         except IndexError:
+            logger.error("AdOps Exception: Connect.search未能检索到任何信息，当前账号可能被排除在<SEARCH_FILTER>之外，请联系管理员处理。")
+            logger.error("self.conn.search({}, {}, attributes=['userAccountControl'])".format(BASE_DN, SEARCH_FILTER.format(username)))
+            logger.info("self.conn.entries -- {}".format(self.conn.entries))
             return False, "AdOps Exception: Connect.search未能检索到任何信息，当前账号可能被排除在<SEARCH_FILTER>之外，请联系管理员处理。"
         except Exception as e:
+            logger.error("AdOps Exception: {}".format(e))
             return False, "AdOps Exception: {}".format(e)
 
+    @decorator_logger(logger, log_head='AdOps', pretty=True, indent=2, verbose=1)
     def ad_unlock_user_by_account(self, username):
         """
         通过username解锁某个用户
@@ -201,10 +216,12 @@ class AdOps(object):
             except IndexError:
                 return False, "AdOps Exception: Connect.search未能检索到任何信息，当前账号可能被排除在<SEARCH_FILTER>之外，请联系管理员处理。"
             except Exception as e:
+                logger.error("AdOps Exception: {}".format(e))
                 return False, "AdOps Exception: {}".format(e)
         else:
             return False, user_dn
 
+    @decorator_logger(logger, log_head='AdOps', pretty=True, indent=2, verbose=1)
     def ad_reset_user_pwd_by_account(self, username, new_password):
         """
         重置某个用户的密码
@@ -242,6 +259,7 @@ class AdOps(object):
         else:
             return False, user_dn
 
+    @decorator_logger(logger, log_head='AdOps', pretty=True, indent=2, verbose=1)
     def ad_get_user_locked_status_by_account(self, username):
         """
         通过username获取某个用户账号是否被锁定
