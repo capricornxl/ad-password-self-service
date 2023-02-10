@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 SCRIPT=$(readlink -f $0)
 CWD=$(dirname ${SCRIPT})
 os_distro=''
@@ -11,9 +12,11 @@ function get_os_basic_info() {
     if [[ -f /etc/lsb-release ]]; then
         os_distro=$(lsb_release -d |awk '{print $2}')
         os_version=$(lsb_release -d -s |awk '{print $2}')
+        os_version_prefix=$(echo ${os_version} |cut -b 1-2)
     elif [[ -f /etc/redhat-release ]]; then
         os_distro=$(cat /etc/redhat-release |awk '{print $1}')
         os_version=$(cat /etc/redhat-release |awk '{print $4}')
+        os_version_prefix=$(echo ${os_version} |cut -b 1)
         get_selinux=$(getenforce)
         if [[ ${get_selinux} =~ enforcing|Enforcing ]];then
             echo "请先禁用SELINUX~~! ..."
@@ -150,7 +153,7 @@ echo "开始部署 ..."
 if [[ ! -f "${CWD}/.init_repo.Done" ]]; then
     echo "处理源配置，改成国内源 ..."
     if [[ ${os_distro} =~ (CentOS|Centos) ]]; then
-        if [[ ${os_version} -lt 9 ]];then
+        if [[ ${os_version_prefix} -lt 9 ]];then
             sudo cp -a /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.bak
             wget -c -t 10 -T 120 -O /etc/yum.repos.d/CentOS-Base.repo https://repo.huaweicloud.com/repository/conf/CentOS-${os_version}-reg.repo
             check_status $?
@@ -204,10 +207,13 @@ if [[ ! -f "${CWD}/.redis.Done" ]]; then
         sed -i "/# requirepass foobared/a requirepass ${gen_password}" /etc/redis/redis.conf
         sed -i "s@REDIS_PASSWORD.*@REDIS_PASSWORD = r'${gen_password}'@g" ${CWD}/conf/local_settings.py
         touch ${CWD}/.redis.Done
+        echo "${gen_password}" >${CWD}/.redis.Done
         echo "安装 redis-server 成功"
     else
         echo "安装 redis-server 失败，请重新运行本脚本再试"
     fi
+else
+    gen_password=$(cat ${CWD}/.redis.Done)
 fi
 
 redis_service=''
@@ -358,6 +364,7 @@ sed -i "s@PWD_SELF_SERVICE_HOME@${CWD}@g" ${CWD}/uwsgiserver
 sed -i "s@PYTHON_VENV_DIR@${PYTHON_VENV_DIR}@g" ${CWD}/uwsgiserver
 
 alias cp='cp'
+
 cp -rfp ${CWD}/uwsgiserver /etc/init.d/uwsgiserver
 
 chmod +x /etc/init.d/uwsgiserver
