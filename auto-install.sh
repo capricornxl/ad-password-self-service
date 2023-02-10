@@ -80,6 +80,14 @@ function safe_installer() {
     fi
 }
 
+check_status() {
+    local status=$1
+    if [[ ${status} -ne 0 ]]; then
+        echo "出现错误，请检查后再试 ..."
+        exit 1
+    fi
+}
+
 get_os_basic_info
 echo "============================================================================="
 echo "  此脚本为快速部署，支持[Ubuntu, Debian, Centos]
@@ -138,6 +146,32 @@ echo
 echo "==============================================="
 echo "开始部署 ..."
 
+
+if [[ ! -f "${CWD}/.init_repo.Done" ]]; then
+    echo "处理源配置，改成国内源 ..."
+    if [[ ${os_distro} =~ (CentOS|Centos) ]]; then
+        if [[ ${os_version} -lt 9 ]];then
+            sudo cp -a /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.bak
+            wget -c -t 10 -T 120 -O /etc/yum.repos.d/CentOS-Base.repo https://repo.huaweicloud.com/repository/conf/CentOS-${os_version}-reg.repo
+            check_status $?
+        fi
+    fi
+    if [[ ${os_distro} =~ (Ubuntu|ubuntu) ]]; then
+        sudo cp -a /etc/apt/sources.list /etc/apt/sources.list.bak
+        sudo sed -i "s@http://.*archive.ubuntu.com@http://repo.huaweicloud.com@g" /etc/apt/sources.list
+        sudo sed -i "s@http://.*security.ubuntu.com@http://repo.huaweicloud.com@g" /etc/apt/sources.list
+        check_status $?
+    fi
+    if [[ ${os_distro} =~ (Debian|debian) ]]; then
+        sudo cp -a /etc/apt/sources.list /etc/apt/sources.list.bak
+        sed -i "s@http://ftp.debian.org@https://repo.huaweicloud.com@g" /etc/apt/sources.list
+        sed -i "s@http://security.debian.org@https://repo.huaweicloud.com@g" /etc/apt/sources.list
+        check_status $?
+    fi
+    touch "${CWD}/.init_repo.Done"
+fi
+
+
 if [[ ! -f "${CWD}/.init_package.Done" ]]; then
     echo "初始化依赖包 ..."
     if [[ ${os_distro} =~ (CentOS|Redhat) ]]; then
@@ -148,6 +182,7 @@ if [[ ! -f "${CWD}/.init_package.Done" ]]; then
     sqlite-devel openssl openssl-devel xz xz-devel libffi-devel ncurses-devel readline-devel tk-devel \
     libpcap-devel findutils wget nginx curl tar initscripts
     elif [[ ${os_distro} =~ (Ubuntu|Debian) ]]; then
+        sudo apt-get install apt-transport-https ca-certificates -y
         sudo apt-get update
         sudo apt-get install -y make build-essential libssl-dev zlib1g-dev libbz2-dev \
     libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev libncursesw5-dev \
