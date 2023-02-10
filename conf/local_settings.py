@@ -68,3 +68,7 @@ WEWORK_AGNET_SECRET = r'修改为自己的'
 HOME_URL = 'PWD_SELF_SERVICE_DOMAIN'
 # 平台显示的标题
 TITLE = 'Self-Service'
+
+# ####### Redis ##########
+REDIS_LOCATION = r'127.0.0.1:6379'
+REDIS_PASSWORD = r'PWD_SELF_REDIS_PASSWORD'

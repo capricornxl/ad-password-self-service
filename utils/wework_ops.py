@@ -161,31 +161,33 @@ class WeWorkOps(AbstractApi):
         _status, ticket_data = self.get_user_ticket_by_code_with_oauth2(code)
         # 判断 user_ticket 是否存在
         if not _status:
-            context = {'global_title': TITLE,
-                       'msg': '获取userid失败，错误信息：{}'.format(ticket_data),
-                       'button_click': "window.location.href='%s'" % '/auth',
-                       'button_display': "重新认证授权"
-                       }
+            context = {
+                'global_title': TITLE,
+                'msg': '获取userid失败，错误信息：{}'.format(ticket_data),
+                'button_click': "window.location.href='%s'" % '/auth',
+                'button_display': "重新认证授权"
+            }
             return False, context, ticket_data
 
         user_id = ticket_data.get('userid')
         if ticket_data.get('user_ticket') is None:
-            context = {'global_title': TITLE,
-                       'msg': '获取用户Ticket失败，当前扫码用户[{}]可能未加入企业！'.format(user_id),
-                       'button_click': "window.location.href='%s'" % home_url,
-                       'button_display': "返回修改密码"
-                       }
+            context = {
+                'global_title': TITLE,
+                'msg': '获取用户Ticket失败，当前扫码用户[{}]可能未加入企业！'.format(user_id),
+                'button_click': "window.location.href='%s'" % home_url,
+                'button_display': "返回修改密码"
+            }
             return False, context, user_id
 
         # 通过user_ticket获取企业微信用户详情信息
         detail_status, user_info = self.get_user_info_by_ticket_with_oauth2(ticket_data.get('user_ticket'))
         print("get_user_info_by_ticket_with_oauth2  --- ", user_info)
         if not detail_status:
-            context = {'global_title': TITLE,
-                       'msg': '获取用户信息失败，错误信息：{}'.format(user_id),
-                       'button_click': "window.location.href='%s'" % '/auth',
-                       'button_display': "重新认证授权"
-                       }
+            context = {
+                'global_title': TITLE,
+                'msg': '获取用户信息失败，错误信息：{}'.format(user_id),
+                'button_click': "window.location.href='%s'" % '/auth',
+                'button_display': "重新认证授权"
+            }
             return False, context
         return True, user_id, user_info
-

@@ -1,14 +1,22 @@
-import sys
-
 import datetime
-from utils.storage.memorystorage import MemoryStorage
-from traceback import format_exc
+import sys
+import traceback
+import logging
+from django_redis import get_redis_connection
+from utils.storage.kvstorage import KvStorage
 
+logger = logging.getLogger(__name__)
 
 try:
-    cache_storage = MemoryStorage()
-    cache_storage.set('MemoryStorage', str(datetime.datetime.now()))
-    redis_get = cache_storage.get('MemoryStorage')
+    redis_conn = get_redis_connection()
+    cache_storage = KvStorage(redis_conn)
+    cache_storage.set('test_redis_connection', str(datetime.datetime))
+    cache_storage.get('test_redis_connection')
+    cache_storage.delete('test_redis_connection')
+    logger.info("Redis连接成功，set/get/delete测试通过...")
 except Exception as e:
-    print("MemoryStorage Exception: {}".format(format_exc()))
+    cache_storage = None
+    logger.error("Redis无法连接，请排查Redis配置...")
+    logger.error("{}".format(traceback.format_exc()))
     sys.exit(1)
+
