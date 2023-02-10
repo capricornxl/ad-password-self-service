@@ -5,6 +5,7 @@ CWD=$(dirname ${SCRIPT})
 os_distro=''
 os_version=''
 get_selinux=''
+gen_password=$(echo "$(hostname)$(date)" |base64 |cut -b 1-24)
 
 function get_os_basic_info() {
     if [[ -f /etc/lsb-release ]]; then
@@ -164,7 +165,6 @@ fi
 if [[ ! -f "${CWD}/.redis.Done" ]]; then
     safe_installer redis
     if [[ $? -eq 0 ]]; then
-        gen_password=$(echo "$(hostname)$(date)" |base64 |cut -b 1-24)
         sed -i 's@^requirepass.*@@g' /etc/redis/redis.conf
         sed -i "/# requirepass foobared/a requirepass ${gen_password}" /etc/redis/redis.conf
         sed -i "s@REDIS_PASSWORD.*@REDIS_PASSWORD = r'${gen_password}'@g" ${CWD}/conf/local_settings.py
@@ -337,7 +337,8 @@ echo
 sed -i "s@PWD_SELF_SERVICE_DOMAIN@${PWD_SELF_SERVICE_DOMAIN}@g" ${CWD}/conf/local_settings.py
 
 ##Nginx vhost配置
-cat << EOF >/etc/nginx/conf.d/pwdselfservice.conf
+mkdir -p /etc/nginx/conf.d
+cat <<EOF >/etc/nginx/conf.d/pwdselfservice.conf
 server {
     listen  80;
     server_name ${PWD_SELF_SERVICE_DOMAIN} ${PWD_SELF_SERVICE_IP};
