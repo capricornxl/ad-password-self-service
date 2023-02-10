@@ -66,9 +66,9 @@ function safe_installer() {
     if [[ ${os_distro} =~ (CentOS|Redhat) ]]; then
         sudo yum makecache
         sudo yum install -y ${_run_cmd}
-    elif [[ ${os_distro} =~ (xUbuntu|Debian) ]]; then
+    elif [[ ${os_distro} =~ (Ubuntu|Debian) ]]; then
         sudo apt-get update
-        sudo apt-get installer ${_run_cmd}
+        sudo apt-get install -y ${_run_cmd}
     else
         echo "未适配的操作系统 ${os_distro}"
         exit 1
@@ -146,7 +146,7 @@ if [[ ! -f "${CWD}/.init_package.Done" ]]; then
         sudo yum install -y @development zlib-devel bzip2 bzip2-devel readline-devel sqlite \
     sqlite-devel openssl openssl-devel xz xz-devel libffi-devel ncurses-devel readline-devel tk-devel \
     libpcap-devel findutils wget nginx curl tar initscripts
-    elif [[ ${os_distro} =~ (xUbuntu|Debian) ]]; then
+    elif [[ ${os_distro} =~ (Ubuntu|Debian) ]]; then
         sudo apt-get update
         sudo apt-get install -y make build-essential libssl-dev zlib1g-dev libbz2-dev \
     libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev libncursesw5-dev \
