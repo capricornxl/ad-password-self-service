@@ -1,5 +1,6 @@
 #!/bin/bash
 
+set -x
 
 SCRIPT=$(readlink -f $0)
 CWD=$(dirname ${SCRIPT})
@@ -155,7 +156,7 @@ if [[ ! -f "${CWD}/.init_repo.Done" ]]; then
     if [[ ${os_distro} =~ (CentOS|Centos) ]]; then
         if [[ ${os_version_prefix} -lt 9 ]];then
             sudo cp -a /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.bak
-            wget -c -t 10 -T 120 -O /etc/yum.repos.d/CentOS-Base.repo https://repo.huaweicloud.com/repository/conf/CentOS-${os_version}-reg.repo
+            curl --connect-timeout 120 -sSL -o /etc/yum.repos.d/CentOS-Base.repo https://repo.huaweicloud.com/repository/conf/CentOS-${os_version_prefix}-reg.repo
             check_status $?
         fi
     fi
