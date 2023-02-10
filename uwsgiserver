@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Startup script for the uwsgi server
 # chkconfig: - 85 15
 # description: uwsgi server is Web Server
@@ -6,7 +6,7 @@
 # processname: uwsgiserver
 
 INI="PWD_SELF_SERVICE_HOME/uwsgi.ini"
-UWSGI="PYTHON_INSTALL_DIR/bin/uwsgi"
+UWSGI="PYTHON_VENV_DIR/bin/uwsgi"
 PSID="ps aux | grep "uwsgi"| grep -v "grep" | wc -l"
 
 if [ ! -n "$1" ]

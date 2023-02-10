@@ -63,8 +63,7 @@ class AdOps(object):
     def __server(self):
         if self.server is None:
             try:
-                self.server = Server(host='%s' % LDAP_HOST, connect_timeout=1, use_ssl=self.use_ssl, port=self.port,
-                                     get_info=ALL)
+                self.server = Server(host='%s' % LDAP_HOST, connect_timeout=1, use_ssl=self.use_ssl, port=self.port, get_info=ALL)
             except LDAPInvalidCredentialsResult as lic_e:
                 return False, LDAPOperationResult("LDAPInvalidCredentialsResult: " + str(lic_e.message))
             except LDAPOperationResult as lo_e:
@@ -139,24 +138,7 @@ class AdOps(object):
         """
         try:
             self.__conn()
-            return True, self.conn.search(BASE_DN, SEARCH_FILTER.format(username),
-                                          attributes=['sAMAccountName'])
-        except IndexError:
-            return False, "AdOps Exception: Connect.search未能检索到任何信息，当前账号可能被排除在<SEARCH_FILTER>之外，请联系管理员处理。"
-        except Exception as e:
-            return False, "AdOps Exception: {}".format(e)
-
-    @decorator_logger(logger, log_head='AdOps', pretty=True, indent=2, verbose=1)
-    def ad_get_user_displayname_by_account(self, username):
-        """
-        通过username查询某个用户的显示名
-        :param username:
-        :return: user_displayname
-        """
-        try:
-            self.__conn()
-            self.conn.search(BASE_DN, SEARCH_FILTER.format(username), attributes=['name'])
-            return True, self.conn.entries[0]['name']
+            return True, self.conn.search(BASE_DN, SEARCH_FILTER.format(username), attributes=['sAMAccountName'])
         except IndexError:
             return False, "AdOps Exception: Connect.search未能检索到任何信息，当前账号可能被排除在<SEARCH_FILTER>之外，请联系管理员处理。"
         except Exception as e:

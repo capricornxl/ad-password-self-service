@@ -59,18 +59,20 @@ class DingDingOps(AppKeyClient):
         _status, user_id = self.get_user_id_by_code(code)
         # 判断 user_id 在本企业钉钉/微信中是否存在
         if not _status:
-            context = {'global_title': TITLE,
-                       'msg': '获取userid失败，错误信息：{}'.format(user_id),
-                       'button_click': "window.location.href='%s'" % home_url,
-                       'button_display': "返回主页"
-                       }
+            context = {
+                'global_title': TITLE,
+                'msg': '获取userid失败，错误信息：{}'.format(user_id),
+                'button_click': "window.location.href='%s'" % home_url,
+                'button_display': "返回主页"
+            }
             return False, context, user_id
         detail_status, user_info = self.get_user_detail_by_user_id(user_id)
         if not detail_status:
-            context = {'global_title': TITLE,
-                       'msg': '获取用户信息失败，错误信息：{}'.format(user_info),
-                       'button_click': "window.location.href='%s'" % home_url,
-                       'button_display': "返回主页"
-                       }
+            context = {
+                'global_title': TITLE,
+                'msg': '获取用户信息失败，错误信息：{}'.format(user_info),
+                'button_click': "window.location.href='%s'" % home_url,
+                'button_display': "返回主页"
+            }
             return False, context, user_info
         return True, user_id, user_info
