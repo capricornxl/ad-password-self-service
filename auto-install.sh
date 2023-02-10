@@ -141,6 +141,8 @@ if [[ ! -f "${CWD}/.init_package.Done" ]]; then
     echo "初始化依赖包 ..."
     if [[ ${os_distro} =~ (CentOS|Redhat) ]]; then
         sudo yum makecache
+        sudo yum install epel-release
+        sudo yum makecache
         sudo yum install -y @development zlib-devel bzip2 bzip2-devel readline-devel sqlite \
     sqlite-devel openssl openssl-devel xz xz-devel libffi-devel ncurses-devel readline-devel tk-devel \
     libpcap-devel findutils wget nginx curl tar initscripts
