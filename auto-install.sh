@@ -4,6 +4,7 @@ set -x
 
 SCRIPT=$(readlink -f $0)
 CWD=$(dirname ${SCRIPT})
+mkdir -p ${CWD}/.status
 os_distro=''
 os_version=''
 get_selinux=''
@@ -150,13 +151,13 @@ echo
 echo "==============================================="
 echo "开始部署 ..."
 
-
-if [[ ! -f "${CWD}/.init_repo.Done" ]]; then
+if [[ ! -f "${CWD}/.status/.init_repo.Done" ]]; then
     echo "处理源配置，改成国内源 ..."
     if [[ ${os_distro} =~ (CentOS|Centos) ]]; then
         if [[ ${os_version_prefix} -lt 9 ]];then
-            sudo cp -a /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.bak
-            curl --connect-timeout 120 -sSL -o /etc/yum.repos.d/CentOS-Base.repo https://repo.huaweicloud.com/repository/conf/CentOS-${os_version_prefix}-reg.repo
+            sudo cp -a /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.$(date '+%Y%m%d%H%M%S')
+            rm -f /etc/yum.repos.d/CentOS-Base.repo
+            cp -a ${CWD}/conf/CentOS-${os_version_prefix}-reg.repo /etc/yum.repos.d/CentOS-Base.repo
             check_status $?
         fi
     fi
@@ -172,15 +173,17 @@ if [[ ! -f "${CWD}/.init_repo.Done" ]]; then
         sed -i "s@http://security.debian.org@https://repo.huaweicloud.com@g" /etc/apt/sources.list
         check_status $?
     fi
-    touch "${CWD}/.init_repo.Done"
+    touch "${CWD}/.status/.init_repo.Done"
 fi
 
-
-if [[ ! -f "${CWD}/.init_package.Done" ]]; then
+if [[ ! -f "${CWD}/.status/.init_package.Done" ]]; then
     echo "初始化依赖包 ..."
     if [[ ${os_distro} =~ (CentOS|Redhat) ]]; then
         sudo yum makecache
         sudo yum install -y epel-release
+        sed -i "s/#baseurl/baseurl/g" /etc/yum.repos.d/epel.repo
+        sed -i "s/metalink/#metalink/g" /etc/yum.repos.d/epel.repo
+        sed -i "s@https\?://download.fedoraproject.org/pub@https://repo.huaweicloud.com@g" /etc/yum.repos.d/epel.repo
         sudo yum makecache
         sudo yum install -y @development zlib-devel bzip2 bzip2-devel readline-devel sqlite \
     sqlite-devel openssl openssl-devel xz xz-devel libffi-devel ncurses-devel readline-devel tk-devel \
@@ -194,27 +197,27 @@ if [[ ! -f "${CWD}/.init_package.Done" ]]; then
     fi
     if [[ $? -eq 0 ]]; then
         echo "初始化依赖包完成 ..."
-        touch ${CWD}/.init_package.Done
+        touch ${CWD}/.status/.init_package.Done
     else
         echo "初始化依赖包失败 ..."
         exit 1
     fi
 fi
 
-if [[ ! -f "${CWD}/.redis.Done" ]]; then
+if [[ ! -f "${CWD}/.status/.redis.Done" ]]; then
     safe_installer redis
     if [[ $? -eq 0 ]]; then
         sed -i 's@^requirepass.*@@g' /etc/redis/redis.conf
         sed -i "/# requirepass foobared/a requirepass ${gen_password}" /etc/redis/redis.conf
         sed -i "s@REDIS_PASSWORD.*@REDIS_PASSWORD = r'${gen_password}'@g" ${CWD}/conf/local_settings.py
-        touch ${CWD}/.redis.Done
-        echo "${gen_password}" >${CWD}/.redis.Done
+        touch ${CWD}/.status/.redis.Done
+        echo "${gen_password}" >${CWD}/.status/.redis.Done
         echo "安装 redis-server 成功"
     else
         echo "安装 redis-server 失败，请重新运行本脚本再试"
     fi
 else
-    gen_password=$(cat ${CWD}/.redis.Done)
+    gen_password=$(cat ${CWD}/.status/.redis.Done)
 fi
 
 redis_service=''
@@ -288,7 +291,7 @@ PYTHON_VER='3.8.16'
 PYTHON_INSTALL_DIR=/usr/share/python-${PYTHON_VER}
 PYTHON_VENV_DIR=${CWD}/pwd_venv
 
-if [[ -f "${CWD}/.python3.Done" ]];then
+if [[ -f "${CWD}/.status/.python3.Done" ]];then
     echo "Python3己部署，跳过 ..."
 else
     if [[ -f "${CWD}/Python-${PYTHON_VER}.tar.xz" ]] && [[ -f "${CWD}/python.${PYTHON_VER}.md5" ]]; then
@@ -319,7 +322,7 @@ else
       echo "创建python虚拟环境 -> ${PYTHON_VENV_DIR} ..."
       rm -rf "${PYTHON_VENV_DIR}"
       ${PYTHON_INSTALL_DIR}/bin/python3 -m venv --copies "${PYTHON_VENV_DIR}"
-      touch ${CWD}/.python3.Done
+      touch ${CWD}/.status/.python3.Done
       echo "Python3 安装成功 ..."
     else
       echo "Python3 安装失败，请重试 ..."
@@ -336,13 +339,13 @@ index-url=https://pypi.tuna.tsinghua.edu.cn/simple
 trusted-host=pypi.tuna.tsinghua.edu.cn
 EOF
 
-if [[ ! -f "${CWD}/.pip3.Done" ]]; then
+if [[ ! -f "${CWD}/.status/.pip3.Done" ]]; then
     echo "部署pip依赖 ..."
     ${PYTHON_VENV_DIR}/bin/pip3 install --upgrade pip
     ${PYTHON_VENV_DIR}/bin/pip3 install wheel setuptools
     ${PYTHON_VENV_DIR}/bin/pip3 install -r ${CWD}/requirement
     if [[ $? -eq 0 ]]; then
-        touch ${CWD}/.pip3.Done
+        touch ${CWD}/.status/.pip3.Done
         echo "Pip3 Requirement 安装成功 ..."
     else
         echo "Pip3 Requirement 安装失败 ..."
