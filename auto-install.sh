@@ -157,6 +157,12 @@ if [[ ! -f "${CWD}/.status/.init_repo.Done" ]]; then
             rm -f /etc/yum.repos.d/CentOS-Base.repo
             cp -a ${CWD}/conf/CentOS-${os_version_prefix}-reg.repo /etc/yum.repos.d/CentOS-Base.repo
             check_status $?
+            sudo yum makecache
+            sudo yum install --nogpgcheck -y epel-release
+            sed -i "s/#baseurl/baseurl/g" /etc/yum.repos.d/epel.repo
+            sed -i "s/metalink/#metalink/g" /etc/yum.repos.d/epel.repo
+            sed -i "s@https\?://download.fedoraproject.org/pub@https://repo.huaweicloud.com@g" /etc/yum.repos.d/epel.repo
+            check_status $?
         fi
     fi
     if [[ ${os_distro} =~ (Ubuntu|ubuntu) ]]; then
@@ -177,21 +183,17 @@ fi
 if [[ ! -f "${CWD}/.status/.init_package.Done" ]]; then
     echo "初始化依赖包 ..."
     if [[ ${os_distro} =~ (CentOS|Redhat) ]]; then
+        sudo yum-complete-transaction --cleanup-only
         sudo yum makecache
-        sudo yum install -y epel-release
-        sed -i "s/#baseurl/baseurl/g" /etc/yum.repos.d/epel.repo
-        sed -i "s/metalink/#metalink/g" /etc/yum.repos.d/epel.repo
-        sed -i "s@https\?://download.fedoraproject.org/pub@https://repo.huaweicloud.com@g" /etc/yum.repos.d/epel.repo
-        sudo yum makecache
-        sudo yum install -y @development zlib-devel bzip2 bzip2-devel readline-devel sqlite \
-    sqlite-devel openssl openssl-devel xz xz-devel libffi-devel ncurses-devel readline-devel tk-devel \
-    libpcap-devel findutils wget nginx curl tar initscripts
+        sudo yum install --nogpgcheck -y @development zlib-devel bzip2 bzip2-devel readline-devel \
+    sqlite-devel openssl-devel xz-devel libffi-devel ncurses-devel readline-devel tk-devel \
+    libpcap-devel findutils wget nginx tar initscripts
     elif [[ ${os_distro} =~ (Ubuntu|Debian) ]]; then
         sudo apt-get install apt-transport-https ca-certificates -y
         sudo apt-get update
         sudo apt-get install -y make build-essential libssl-dev zlib1g-dev libbz2-dev \
-    libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev libncursesw5-dev \
-    xz-utils tk-dev libffi-dev liblzma-dev python-openssl wget nginx curl tar initscripts
+    libreadline-dev libsqlite3-dev llvm libncurses5-dev libncursesw5-dev \
+    xz-utils tk-dev libffi-dev liblzma-dev python-openssl wget nginx tar initscripts
     fi
     if [[ $? -eq 0 ]]; then
         echo "初始化依赖包完成 ..."
