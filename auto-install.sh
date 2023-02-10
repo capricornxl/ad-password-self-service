@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -x
-
 SCRIPT=$(readlink -f $0)
 CWD=$(dirname ${SCRIPT})
 mkdir -p ${CWD}/.status
@@ -402,7 +400,7 @@ EOF
 
 systemctl start nginx
 
-systemctl start uwsgi
+systemctl start uwsgiserver
 
 echo
 echo
