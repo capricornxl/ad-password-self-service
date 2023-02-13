@@ -207,8 +207,13 @@ fi
 if [[ ! -f "${CWD}/.status/.redis.Done" ]]; then
     safe_installer redis
     if [[ $? -eq 0 ]]; then
-        sed -i 's@^requirepass.*@@g' /etc/redis/redis.conf
-        sed -i "/# requirepass foobared/a requirepass ${gen_password}" /etc/redis/redis.conf
+        if [[ -f /etc/redis.conf ]]; then
+            REDIS_CONF=/etc/redis.conf
+        else
+            REDIS_CONF=/etc/redis/redis.conf
+        fi
+        sed -i 's@^requirepass.*@@g' ${REDIS_CONF}
+        sed -i "/# requirepass foobared/a requirepass ${gen_password}" ${REDIS_CONF}
         sed -i "s@REDIS_PASSWORD.*@REDIS_PASSWORD = r'${gen_password}'@g" ${CWD}/conf/local_settings.py
         touch ${CWD}/.status/.redis.Done
         echo "${gen_password}" >${CWD}/.status/.redis.Done
@@ -410,11 +415,11 @@ echo "密码自助服务平台的访问地址是：http://${PWD_SELF_SERVICE_DOM
 echo "请确保以上域名能正常解析，否则使用域名无法访问 ..."
 echo "如果本机防火墙是开启状态，请自行放行端口: [80, ${PWD_SELF_SERVICE_PORT}]"
 echo
-echo "Uwsgi启动：/etc/init.d/uwsgi start ..."
-echo "Uwsgi停止：/etc/init.d/uwsgi stop ..."
-echo "Uwsgi重启：/etc/init.d/uwsgi restart ..."
+echo "Uwsgi启动：/etc/init.d/uwsgiserver start ..."
+echo "Uwsgi停止：/etc/init.d/uwsgiserver stop ..."
+echo "Uwsgi重启：/etc/init.d/uwsgiserver restart ..."
 echo
-echo "Redis Server密码是：${gen_password}，可在/etc/redis.conf中查到 ..."
+echo "Redis Server密码是：${gen_password}，可在${REDIS_CONF}中查到 ..."
 echo
 echo "文件${CWD}/conf/local_setting.py中配置参数请自行确认下是否完整 ..."
 echo

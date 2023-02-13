@@ -119,6 +119,10 @@ CACHES = {
     }
 }
 
+# 514 66050是AD中账号被禁用的特定代码，这个可以在微软官网查到。
+# 可能不是太准确，如果使用者能确定还有其它状态码，可以自行在此处添加
+AD_ACCOUNT_DISABLE_CODE = [514, 66050]
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
