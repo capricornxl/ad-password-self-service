@@ -14,6 +14,8 @@ def get_email_from_userinfo(user_info):
         return True, user_info.get('email')
     elif user_info.get('biz_mail') not in ['', None]:
         return True, user_info.get('biz_mail')
+    elif user_info.get('orgEmail') not in ['', None]:
+        return True, user_info.get('orgEmail')
     else:
         return False, "当前用户的邮箱或企业邮箱均没配置，请先完善个人信息！"
 
