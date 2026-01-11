@@ -1,0 +1,128 @@
+# ============================================================================
+# 日志系统配置文件
+# ============================================================================
+# 说明：
+#   1. 使用Python标准logging模块的dictConfig格式
+#   2. 支持环境变量注入：${VAR_NAME} 或 ${VAR_NAME:default_value}
+#   3. 日志文件自动轮转，防止文件过大
+#   4. LOG_PATH 环境变量：日志目录路径（默认：log）
+# ============================================================================
+
+version: 1  # 配置格式版本，固定为1
+disable_existing_loggers: false  # 不禁用已存在的日志记录器
+
+# ----------------------------------------------------------------------------
+# 日志格式化器配置
+# ----------------------------------------------------------------------------
+formatters:
+  # 详细格式：包含时间、模块名、级别、函数名、行号和消息
+  verbose:
+    format: '%(asctime)s - %(name)s - %(levelname)s - %(funcName)s:%(lineno)d - %(message)s'
+    datefmt: '%Y-%m-%d %H:%M:%S'  # 时间格式
+  
+  # 简单格式：仅包含时间、级别和消息
+  simple:
+    format: '%(asctime)s - %(levelname)s - %(message)s'
+    datefmt: '%Y-%m-%d %H:%M:%S'  # 时间格式
+
+
+# ----------------------------------------------------------------------------
+# 日志过滤器配置
+# ----------------------------------------------------------------------------
+filters:
+  # 仅在DEBUG模式时记录
+  require_debug_true:
+    (): 'django.utils.log.RequireDebugTrue'
+  
+  # 仅在非DEBUG模式时记录
+  require_debug_false:
+    (): 'django.utils.log.RequireDebugFalse'
+
+# ----------------------------------------------------------------------------
+# 日志处理器配置
+# ----------------------------------------------------------------------------
+handlers:
+  # 控制台输出（仅在DEBUG模式）
+  console:
+    class: 'logging.StreamHandler'  # 标准输出流处理器
+    level: 'DEBUG'  # 最低记录级别
+    formatter: 'verbose'  # 使用详细格式
+    filters: [require_debug_true]  # 仅DEBUG模式输出
+    stream: 'ext://sys.stdout'  # 使用标准输出
+  
+  # 应用主日志文件
+  file:
+    class: 'logging.handlers.RotatingFileHandler'  # 轮转文件处理器
+    level: 'INFO'  # 记录INFO及以上级别
+    formatter: 'verbose'  # 使用详细格式
+    filename: '${LOG_PATH:log}/app.log'  # 日志文件路径（默认：log/app.log）
+    maxBytes: 10485760  # 单文件最大10MB
+    backupCount: 5  # 保留5个备份文件
+  
+  # 错误日志文件（仅记录ERROR及以上）
+  error_file:
+    class: 'logging.handlers.RotatingFileHandler'  # 轮转文件处理器
+    level: 'ERROR'  # 仅记录ERROR和CRITICAL
+    formatter: 'verbose'  # 使用详细格式
+    filename: '${LOG_PATH:log}/error.log'  # 错误日志文件路径（默认：log/error.log）
+    maxBytes: 10485760  # 单文件最大10MB
+    backupCount: 5  # 保留5个备份文件
+  
+  # OAuth认证日志文件
+  oauth_file:
+    class: 'logging.handlers.RotatingFileHandler'  # 轮转文件处理器
+    level: 'DEBUG'  # 记录所有级别（用于调试OAuth流程）
+    formatter: 'verbose'  # 使用详细格式
+    filename: '${LOG_PATH:log}/oauth.log'  # OAuth日志文件路径（默认：log/oauth.log）
+    maxBytes: 5242880  # 单文件最大5MB
+    backupCount: 3  # 保留3个备份文件
+  
+  # LDAP/AD操作日志文件
+  ldap_file:
+    class: 'logging.handlers.RotatingFileHandler'  # 轮转文件处理器
+    level: 'DEBUG'  # 记录所有级别（用于调试LDAP操作）
+    formatter: 'verbose'  # 使用详细格式
+    filename: '${LOG_PATH:log}/ldap.log'  # LDAP日志文件路径（默认：log/ldap.log）
+    maxBytes: 5242880  # 单文件最大5MB
+    backupCount: 3  # 保留3个备份文件
+
+# ----------------------------------------------------------------------------
+# 日志记录器配置（按模块分类）
+# ----------------------------------------------------------------------------
+loggers:
+  # Django框架日志
+  django:
+    level: 'INFO'  # 记录INFO及以上级别
+    handlers: [console, file, error_file]  # 输出到控制台、主日志和错误日志
+    propagate: false  # 不向上级记录器传播
+  
+  # OAuth认证模块日志
+  oauth:
+    level: 'DEBUG'  # 记录所有级别（便于OAuth故障排查）
+    handlers: [oauth_file]  # 仅输出到OAuth专用日志
+    propagate: false  # 不向上级记录器传播
+  
+  # LDAP/AD操作模块日志
+  ldap:
+    level: 'DEBUG'  # 记录所有级别（便于LDAP故障排查）
+    handlers: [ldap_file]  # 仅输出到LDAP专用日志
+    propagate: false  # 不向上级记录器传播
+  
+  # 密码管理模块日志
+  password_manager:
+    level: 'INFO'  # 记录INFO及以上级别
+    handlers: [console, file]  # 输出到控制台和主日志
+    propagate: false  # 不向上级记录器传播
+  
+  # 应用通用日志
+  app:
+    level: 'DEBUG'  # 记录所有级别
+    handlers: [console, file]  # 输出到控制台和主日志
+    propagate: false  # 不向上级记录器传播
+
+# ----------------------------------------------------------------------------
+# 根日志记录器配置（捕获所有未分类的日志）
+# ----------------------------------------------------------------------------
+root:
+  level: 'DEBUG'  # 根记录器级别（捕获所有级别）
+  handlers: [console, file, error_file]  # 输出到控制台、主日志和错误日志

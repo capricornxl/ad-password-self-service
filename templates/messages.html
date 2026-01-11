@@ -1,14 +1,53 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block paneltitle %}结果{% endblock %}
+{% block paneltitle %}操作结果{% endblock %}
 {% block middleblock %}
+<style>
+    .msg-container {
+        padding: 30px 20px;
+        text-align: center;
+    }
+    .msg-icon {
+        font-size: 48px;
+        margin-bottom: 20px;
+    }
+    .msg-title {
+        font-size: 24px;
+        font-weight: 500;
+        margin-bottom: 15px;
+        line-height: 1.5;
+    }
+    .msg-detail {
+        font-size: 14px;
+        color: #666;
+        margin-top: 15px;
+        padding: 10px;
+        background: #f8f8f8;
+        border-radius: 4px;
+    }
+    .msg-success { color: #5FB878; }
+    .msg-error { color: #FF5722; }
+    .msg-warning { color: #FFB800; }
+    .msg-info { color: #1E9FFF; }
+</style>
 <div class="layui-row">
-    <form class="layui-form  layui-form-pane" method="get" autocomplete="off">{% csrf_token %}
-        <div class="layui-form-item">
-            {{ msg }}
+    <form class="layui-form layui-form-pane" method="get" autocomplete="off">{% csrf_token %}
+        <div class="msg-container">
+            {% if msg_type == 'success' %}
+            <h2 class="msg-title msg-success">{{ msg }}</h2>
+            {% elif msg_type == 'error' %}
+            <h2 class="msg-title msg-error">{{ msg }}</h2>
+            {% if error_code %}
+            <div class="msg-detail">错误码: {{ error_code }}</div>
+            {% endif %}
+            {% elif msg_type == 'warning' %}
+            <h2 class="msg-title msg-warning">{{ msg }}</h2>
+            {% else %}
+            <h2 class="msg-title msg-info">{{ msg }}</h2>
+            {% endif %}
         </div>
-        <div class="layui-form-item">
-            <button type="button" class="layui-btn layui-btn-normal layui-btn-fluid" onclick="{{ button_click }}">{{ button_display }}</button>
+        <div class="layui-form-item" style="margin-top: 20px;">
+            <button type="button" class="layui-btn {% if msg_type == 'success' %}layui-btn-normal{% elif msg_type == 'error' %}layui-btn-danger{% elif msg_type == 'warning' %}layui-btn-warm{% else %}layui-btn-primary{% endif %} layui-btn-fluid" onclick="{{ button_click }}">{{ button_display }}</button>
         </div>
     </form>
 </div>

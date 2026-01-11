@@ -1,0 +1,44 @@
+server {
+    listen       NGINX_HTTP_PORT;
+    server_name  HOME_URL;
+    return 301   https://$host$request_uri;
+}
+
+server {
+    listen       NGINX_HTTPS_PORT ssl http2;
+    server_name  HOME_URL;
+
+    ssl_certificate      /opt/project/run/nginx/certs/CERT_FILE_NAME;
+    ssl_certificate_key  /opt/project/run/nginx/certs/KEY_FILE_NAME;
+    ssl_session_timeout  1d;
+    ssl_session_cache    shared:SSL:10m;
+    ssl_session_tickets  off;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers off;
+    add_header Strict-Transport-Security "max-age=63072000" always;
+
+    location /static/ {
+        alias /opt/project/static/;
+        access_log off;
+        expires 7d;
+    }
+    location /media/ {
+        alias /opt/project/media/;
+        expires 24h;
+        access_log off;
+    }
+
+    location / {
+        proxy_pass http://password-self-service:DJANGO_PORT;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_redirect off;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Host $server_name;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}

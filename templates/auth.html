@@ -1,41 +1,102 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block headerjs %}<script type="text/javascript" src="{% static 'js/dingtalk.open.js' %}"></script>{% endblock %}
-{% block paneltitle %}请稍后，授权信息认证中{% endblock %}
+{% block paneltitle %}免登认证中...{% endblock %}
 {% block middleblock %}
 {% endblock %}
 {% block footerjs %}
 <script src="{% static 'layui/layui.js' %}"></script>
 <script>
-layui.use(['form', 'jquery', 'layer'], function () {
-let layer = layui.layer,
-    $ = layui.jquery;
-let re_url= ""
-let index_load = layer.load(1, {shade: 0.4});
-{% if app_type == 'DING' %}
-dd.ready(() => {
-    dd.runtime.permission.requestAuthCode({corpId: '{{ corp_id }}'}).then((result) => {
-        re_url = '/resetPassword?code=' + result.code
-        window.parent.parent.location.href=re_url;
-    }).catch(err => {
-        layer.close(index_load)
-        layer.open({
-            title : '出错啦！'
-            ,content: err
-            ,btn: '关闭'
-            ,btnAlign: 'c'
-            ,yes: function(){
-              layer.closeAll();
+const OAuthStrategies = {
+    ding: {
+        init: function(config, onSuccess, onError) {
+            if (typeof dd === 'undefined') {
+                onError('钉钉SDK未加载，请确认在钉钉客户端中打开');
+                return;
             }
-        });
+            dd.ready(() => {
+                dd.runtime.permission.requestAuthCode({
+                    corpId: config.corp_id
+                }).then((result) => {
+                    onSuccess('/resetPassword?code=' + result.code);
+                }).catch(err => {
+                    onError('授权失败：' + (err.message || JSON.stringify(err)));
+                });
+            });
+        }
+    },
+    wework: {
+        init: function(config, onSuccess, onError) {
+            const url = `https://open.weixin.qq.com/connect/oauth2/authorize?appid=${config.app_id}&agentid=${config.agent_id}&redirect_uri=${config.redirect_url}&response_type=code&scope=snsapi_privateinfo&state=#wechat_redirect`;
+            onSuccess(url);
+        }
+    },
+    feishu: {
+        init: function(config, onSuccess, onError) {
+            // 飞书新版 OAuth 2.0 授权 URL
+            // 文档: https://open.feishu.cn/document/common-capabilities/sso/api/obtain-oauth-code
+            // 需要对 redirect_uri 进行 URL 编码
+            const redirectUri = encodeURIComponent(config.redirect_url);
+            const url = `https://accounts.feishu.cn/open-apis/authen/v1/authorize?client_id=${config.app_id}&redirect_uri=${redirectUri}&response_type=code&state=STATE`;
+            onSuccess(url);
+        }
+    }
+};
+
+layui.use('layer', function () {
+    var layer = layui.layer;
+    var loadingIndex = layer.msg('正在进行授权认证，请稍候...', {
+        icon: 16,
+        shade: 0.5,
+        time: false
     });
-});
-{% elif app_type == 'WEWORK' %}
-$(function () {
-    re_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid={{ app_id }}&agentid={{ agent_id }}&redirect_uri={{ redirect_url }}&response_type=code&scope=snsapi_privateinfo&state=#wechat_redirect"
-    window.parent.parent.location.href=re_url;
-})
-{% endif %}
+    const oauthConfig = {{ oauth_config_json|safe }};
+    const providerType = oauthConfig.provider_type;
+    const strategy = OAuthStrategies[providerType];
+    
+    if (!strategy) {
+        layer.close(loadingIndex);
+        layer.alert('未识别的OAuth提供商类型：' + providerType, {
+            icon: 2,
+            title: '配置错误'
+        }, function() {
+            window.location.href = '/';
+        });
+        return;
+    }
+    
+    // 超时保护（15秒）
+    const timeoutTimer = setTimeout(() => {
+        layer.close(loadingIndex);
+        layer.alert('认证请求超时，请检查网络后重试', {
+            icon: 0,
+            title: '提示'
+        }, function() {
+            window.location.reload();
+        });
+    }, 15000);
+    
+    // 执行OAuth策略
+    strategy.init(
+        oauthConfig,
+        // 成功回调 - 直接跳转
+        function(redirectUrl) {
+            clearTimeout(timeoutTimer);
+            window.parent.parent.location.href = redirectUrl;
+        },
+        // 错误回调
+        function(errorMsg) {
+            clearTimeout(timeoutTimer);
+            layer.close(loadingIndex);
+            layer.alert(errorMsg, {
+                icon: 2,
+                title: '认证失败'
+            }, function() {
+                window.location.href = '/';
+            });
+        }
+    );
 });
 </script>
 {% endblock %}
+

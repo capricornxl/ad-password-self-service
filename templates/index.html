@@ -4,7 +4,7 @@
 {% block paneltitle %}修改密码{% endblock %}
 {% block middleblock %}
 <div class="layui-row">
-    <form class="layui-form  layui-form-pane" action="/" method="post" autocomplete="off">{% csrf_token %}
+    <form class="layui-form  layui-form-pane" id="changePasswordForm" autocomplete="off">{% csrf_token %}
         <div class="layui-form-item">
             <label class="layui-form-label">账号</label>
             <div class="layui-input-block">
@@ -26,11 +26,11 @@
         <div class="layui-form-item">
             <label class="layui-form-label">确认密码</label>
             <div class="layui-input-block">
-                <input type="password" lay-verify="pass|repass" lay-verType="tips" name="ensure_password" id="ensure_password" placeholder="再次确认新密码" autocomplete="off" class="layui-input">
+                <input type="password" lay-verify="pass|repass" lay-verType="tips" name="confirm_password" id="confirm_password" placeholder="再次确认新密码" autocomplete="off" class="layui-input">
             </div>
         </div>
         <div class="layui-form-item">
-            <button type="submit" lay-submit="" class="layui-btn layui-btn-normal layui-btn-fluid">立即提交</button>
+            <button type="submit" lay-submit lay-filter="changePassword" class="layui-btn layui-btn-normal layui-btn-fluid">立即提交</button>
         </div>
         <div class="layui-form-item a-middle-text">
             <span class="layui-breadcrumb">
@@ -41,7 +41,7 @@
 </div>
 {% endblock %}
 {% block middleblockfoot %}
-<blockquote class="layui-elem-quote layui-quote-nm">
+<blockquote class="layui-elem-quote layui-quote-nm" id="password-rules-tip">
     新密码8至30位长度，要求包含大小写字母及数字。<br><br>
     如果密码己遗忘，可点击上方<b>[<i class="layui-icon layui-icon-refresh-3"></i> 重置/解锁账号]</b>使用⌊{{ scan_app }}⌉应用内免登录授权并通过身份验证后进行重置/解锁账号。<br>
     * 如果有当弹出提示<b>是否同意授权</b>时，请务必<b>全部同意</b>，否则无法获取关键信息，导致无法正常使用重置/解锁账号！
@@ -49,24 +49,70 @@
 {% endblock %}
 {% block footercss %}{% endblock %}
 {% block footerjs %}
-<script src="{% static 'layui/layui.js' %}"></script>
 <script>
-layui.use(['form', 'jquery', 'layer'], function () {
-    let form = layui.form,
-        $ = layui.jquery;
-    form.verify({
-        pass: [
-            /^(?=.*[0-9])(?=.*[a-zA-Z])(?=.*[^a-zA-Z0-9]).{8,30}$/,
-            '密码必须8到30位，要求包含大小写字母、数字与字符，且不能出现空格！'
-        ],
-        repass: function (value,item) {
-            if ($('#ensure_password').val() !== $('#new_password').val()) {
-                return '两次输入密码不一致！';
-            }},
-        newpass: function (value,item) {
-            if ($('#old_password').val() === $('#password').val()) {
-                return '新旧密码不能重复使用，请修正！';
-            }}});
+layui.use(['form', 'app'], function() {
+    var form = layui.form;
+    var app = layui.app;
+    var $ = layui.jquery;
+    
+    // 初始化应用
+    app.init();
+    
+    // 防重复提交状态
+    var isSubmitting = false;
+    
+    // 动态获取并设置密码验证规则
+    app.PasswordUtil.getRules(function(rules) {
+        // 更新页面提示文字
+        if (rules.message) {
+            var $tip = $('#password-rules-tip');
+            var originalHtml = $tip.html();
+            // 更新第一行密码规则说明
+            $tip.html(rules.message + '<br><br>' + originalHtml.substring(originalHtml.indexOf('如果密码己遗忘')));
+        }
+        
+        // 设置表单验证规则
+        app.PasswordUtil.setVerifyRules(rules);
+    });
+    
+    // 表单提交
+    form.on('submit(changePassword)', function(data) {
+        // 防重复提交检查
+        if (isSubmitting) {
+            app.App.showWarning('正在处理中，请稍候...');
+            return false;
+        }
+        
+        isSubmitting = true;
+        var loadIndex = app.App.showLoading();
+        var $submitBtn = $('button[lay-filter="changePassword"]');
+        
+        // 禁用提交按钮
+        $submitBtn.prop('disabled', true).addClass('layui-btn-disabled');
+        
+        app.App.request('/api/password/change', data.field)
+            .done(function(res) {
+                if (res.success) {
+                    app.App.showSuccess(res.message, function() {
+                        // 清空表单
+                        $('#changePasswordForm')[0].reset();
+                    });
+                } else {
+                    app.App.showError(res.message, res.error_code);
+                }
+            })
+            .fail(function(xhr, status, error) {
+                // 错误已在 App.request 中统一处理
+            })
+            .always(function() {
+                app.App.hideLoading(loadIndex);
+                // 恢复按钮状态
+                isSubmitting = false;
+                $submitBtn.prop('disabled', false).removeClass('layui-btn-disabled');
+            });
+        
+        return false; // 阻止表单同步提交
+    });
 });
 </script>
 {% endblock %}
