@@ -1212,4 +1212,4 @@ ERROR_CODE_MAPPING = {
 
 ## 许可证
 
-MIT License
+Creative Commons Attribution 4.0 International
