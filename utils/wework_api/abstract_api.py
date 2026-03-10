@@ -1,9 +1,11 @@
+﻿# -*- coding: utf-8 -*-
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
 import json
 
 import requests
+from utils.proxy_manager import get_proxies
 
 DEBUG = False
 
@@ -78,7 +80,13 @@ class AbstractApi(object):
         if DEBUG is True:
             print(real_url, args)
 
-        return requests.post(real_url, data=json.dumps(args, ensure_ascii=False).encode('utf-8')).json()
+        # 获取代理配置
+        proxies = get_proxies()
+        return requests.post(
+            real_url,
+            data=json.dumps(args, ensure_ascii=False).encode('utf-8'),
+            proxies=proxies
+        ).json()
 
     def __http_get(self, url):
         real_url = self.__append_token(url)
@@ -86,10 +94,14 @@ class AbstractApi(object):
         if DEBUG is True:
             print(real_url)
 
-        return requests.get(real_url).json()
+        # 获取代理配置
+        proxies = get_proxies()
+        return requests.get(real_url, proxies=proxies).json()
 
     def __post_file(self, url, media_file):
-        return requests.post(url, file=media_file).json()
+        # 获取代理配置
+        proxies = get_proxies()
+        return requests.post(url, file=media_file, proxies=proxies).json()
 
     @staticmethod
     def __check_response(response):

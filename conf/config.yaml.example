@@ -1,0 +1,535 @@
+# ----------------------------------------------------------------------------
+# 应用基础配置
+# ----------------------------------------------------------------------------
+app:
+  title: '密码自助服务'  # 应用标题，显示在页面上
+  debug: false    # 调试模式开关，生产环境必须设置为false
+  secret_key: ''  # Django密钥，用于会话加密，生产环境请设置为随机复杂字符串，长度32~50之间，项目启动之后不可更改
+  allowed_hosts:  # 允许访问的主机列表，生产环境应指定具体域名
+    - '*'         # '*' 表示允许所有主机（仅开发环境使用）
+  landing_page: 'index'          # 应用入口页面：index=手动确认页面，auth=自动OAuth认证后跳转
+  auto_redirect_in_mobile: false  # 在客户端应用中是否自动跳转应用内免登认证 (不自动中转页面则优先显示修改密码页面)
+
+# ----------------------------------------------------------------------------
+# OAuth认证提供商配置
+# ----------------------------------------------------------------------------
+auth:
+  provider: 'wework'  # OAuth提供商类型：ding=钉钉，wework=企业微信
+  session_timeout: 300  # 会话超时时间（秒），默认5分钟
+  session_expire_at_browser_close: true  # 关闭浏览器时是否清除会话
+  
+# ----------------------------------------------------------------------------
+# OAuth用户标识字段映射配置
+# ----------------------------------------------------------------------------
+oauth:
+  home_url: '${HOME_URL}'                 # 应用主页URL，用于OAuth回调，从docker compose .env
+  redirect_url_prefix: '/resetPassword'   # OAuth回调后的重定向路径前缀: resetPassword(重置账号)、unlockAccount(解锁账号)
+  user_identifier_mapping:
+    # 钉钉用户信息字段映射
+    ding:
+      primary: 'email'  # 首选字段：优先使用的字段
+      fallback:       # 降级字段列表：primary字段不存在或为空时依次尝试
+        - 'org_email'  # 组织邮箱
+        - 'orgEmail'  # 组织邮箱
+        - 'biz_mail'  # 企业邮箱
+        - 'mobile'    # 手机号
+    # 企业微信用户信息字段映射
+    wework:
+      primary: 'email'  # 首选字段
+      fallback:     # 降级字段列表
+        - 'mobile'  # 手机号
+        - 'userid'  # 用户ID
+    # 飞书用户信息字段映射
+    feishu:
+      primary: 'email'  # 首选字段
+      fallback:     # 降级字段列表
+        - 'mobile'  # 手机号
+        - 'userid'  # 用户ID
+
+# ----------------------------------------------------------------------------
+# OAuth提供商详细配置
+# ----------------------------------------------------------------------------
+oauth_providers:
+  # 钉钉配置
+  ding:
+    corp_id: ''     # 钉钉企业ID（CorpId）
+    app_key: ''     # 钉钉应用的AppKey
+    app_secret: ''  # 钉钉应用的AppSecret
+    app_id: ''      # 钉钉应用ID（AgentId 用于前端免登配置）
+    provider_name: '钉钉'  # 提供商显示名称
+
+  # 企业微信配置
+  wework:
+    corp_id: '${WEWORK_CORP_ID}'  # 企业微信企业ID（CorpId）
+    agent_id: '${WEWORK_AGENT_ID}'  # 企业微信应用的AgentId
+    agent_secret: '${WEWORK_AGENT_SECRET}'  # 企业微信应用的Secret
+    provider_name: '企业微信'  # 提供商显示名称
+
+  # 飞书
+  feishu:
+    app_id: ''        # 飞书AppID
+    app_secret: ''    # 飞书AppSecret
+    user_identifier_mapping: ''  # 可选
+    provider_name: '飞书'  # 提供商显示名称
+
+# ============================================================================
+# LDAP配置 (支持AD和OpenLDAP)
+# ============================================================================
+ldap:
+  # --------------------------------------------------------------------------
+  # LDAP服务器类型 (必选)
+  # --------------------------------------------------------------------------
+  type: 'ad'  # 选项: 'ad' (Active Directory) 或 'openldap'
+  
+  # --------------------------------------------------------------------------
+  # 通用配置 (AD和OpenLDAP共用)
+  # --------------------------------------------------------------------------
+  host: 'ad.company.com'          # LDAP服务器地址，如：ad.company.com/ldap.company.com 或 IP地址
+  domain: 'company.com'           # AD域名，如：COMPANY (仅AD使用，OpenLDAP忽略)
+  login_user: svc_pwd_reset      # 服务账号：AD格式(username)，OpenLDAP格式(DN: cn=admin,dc=abc,dc=com)
+  login_password: 'Password'      # 服务账号密码
+  use_ssl: true                   # 是否使用SSL连接，修改密码必须为true
+  port: 636                       # LDAP端口：SSL使用636，非SSL使用389
+  
+  # LDAP搜索配置
+  base_dn: 'dc=company,dc=com'  # 搜索基准DN, 如果是Openldap，需要明确在哪个OU中搜索，防止越界
+  # 搜索过滤器，为空则使用适配器默认值 (AD: (&(objectclass=user)(sAMAccountName={})), OpenLDAP: (&(objectclass=inetOrgPerson)(uid={}))
+  search_filter: '(&(objectclass=user)(sAMAccountName={}))'
+  search_filter_by_email: '(&(objectclass=*)(mail={}))'  # 按邮箱搜索（通用）
+  search_attributes:  # 搜索返回的属性列表 (会被适配器动态调整)
+    - 'sAMAccountName'  # AD: 登录名
+    - 'uid'  # OpenLDAP: 用户ID
+    - 'mail'  # 通用: 邮箱
+    - 'cn'  # 通用: 通用名(CommonName)
+    - 'displayName'  # 通用: 显示名称
+    - 'distinguishedName'  # AD: 完整DN
+  user_dn_template: ''  # 用户DN模板（可选），如：CN={username},OU=Users,DC=abc,DC=com (AD) 或 uid={username},ou=people,dc=abc,dc=com (OpenLDAP)
+  groups_base_dn: ''  # 组搜索基准DN (OpenLDAP反向查询组时使用)，为空则使用 ou=people,{base_dn}
+  
+  # LDAP连接超时和重试配置
+  connection_timeout: 10  # 连接超时时间（秒）
+  response_timeout: 30  # 操作响应超时时间（秒）
+  auto_retry: false  # 失败是否自动重试
+  max_retry_attempts: 3  # 最大重试次数（需auto_retry=true）
+  retry_delay: 1  # 重试间隔时间（秒）
+  
+  # --------------------------------------------------------------------------
+  # Active Directory 专用配置
+  # --------------------------------------------------------------------------
+  # 根据以下网站的说明：
+  # https://docs.microsoft.com/zh-cn/troubleshoot/windows/win32/change-windows-active-directory-user-password
+  # 密码存储在 unicodePwd 属性中的用户对象的 AD 和 LDS 数据库中。 此属性可以在受限条件下写入，只能修改属性。
+  # 为了修改此属性，客户端必须具有到服务器的 128 位传输层安全性 (TLS) /Secure Socket Layer (SSL) 连接。 
+  # 使用 SSP 创建的会话密钥（使用 NTLM 或 Kerberos）的加密会话也可接受，只要达到最小密钥长度。
+  # 若要使用 TLS/SSL 实现此连接：
+  #     服务器必须拥有 128 位 RSA 连接的服务器证书
+  #     客户端必须信任生成服务器证书 (CA) 证书颁发机构
+  #     客户端和服务器都必须能够进行 128 位加密
+  ad:
+    # 认证方式
+    authentication: 'ntlm'  # 选项: 'ntlm' (推荐) 或 'simple'
+    
+    # TLS/SSL证书验证配置
+    tls:
+      # 证书验证级别
+      # 'none': 不验证证书
+      # 'optional': 尝试验证，失败时继续连接
+      # 'required': 严格验证证书
+      validate: 'none'  # 选项: 'none', 'optional', 'required'
+      
+      # CA证书配置
+      ca_certs_file: ''  # CA证书文件路径（PEM格式），留空使用系统默认。相对路径基于项目根目录，绝对路径直接使用。示例: './certs/ca-bundle.crt' 或 '/etc/ssl/certs/ca-certificates.crt'
+      ca_certs_path: ''  # CA证书目录路径（包含多个.pem文件），留空使用系统默认
+      
+      # 客户端证书（双向TLS认证，可选）
+      local_certificate_file: ''  # 客户端证书文件路径（PEM格式），留空表示不使用客户端证书
+      local_private_key_file: ''  # 客户端私钥文件路径（PEM格式），需与local_certificate_file配套使用
+      local_private_key_password: ''  # 私钥密码（如果私钥加密），可选
+      
+      # TLS版本配置
+      version: ''  # TLS协议版本，留空自动选择。选项: 'TLSv1', 'TLSv1.1', 'TLSv1.2', 'TLSv1.3'
+      
+      # 其他TLS选项
+      validate_hostname: true  # 是否验证服务器主机名与证书CN/SAN匹配
+      ciphers: ''  # 自定义加密套件（高级选项），留空使用默认安全套件
+    
+    # AD属性映射 (支持自定义)
+    attributes:
+      password: 'unicodePwd'  # 密码属性
+      username: 'sAMAccountName'  # 用户名属性
+      lockout_time: 'lockoutTime'  # 锁定时间属性
+      account_control: 'userAccountControl'  # 账号控制属性
+      member_of: 'memberOf'  # 组成员属性
+      object_class: 'user'  # 对象类
+    
+    # 账号状态配置 (userAccountControl的值)
+    account_status:
+      enabled: [512]  # 正常
+      disabled: [514, 66050, 66082]  # 已禁用
+      locked: [8388608]  # 已锁定（实际通过lockoutTime判断）
+      password_expired: [8388608]  # 密码过期
+  
+  # --------------------------------------------------------------------------
+  # OpenLDAP 专用配置
+  # --------------------------------------------------------------------------
+  openldap:
+    # 认证方式
+    authentication: 'simple'  # OpenLDAP主要使用SIMPLE认证
+    
+    # TLS/SSL证书验证配置
+    tls:
+      validate: 'none'  # 选项: 'none', 'optional', 'required'
+      ca_certs_file: ''  # CA证书文件路径，相对路径基于项目根目录
+      ca_certs_path: ''  # CA证书目录路径
+      local_certificate_file: ''  # 客户端证书（双向TLS，可选）
+      local_private_key_file: ''  # 客户端私钥
+      local_private_key_password: ''  # 私钥密码
+      version: ''  # TLS版本，留空自动选择
+      validate_hostname: true  # 验证主机名
+      ciphers: ''  # 自定义加密套件
+    
+    # OpenLDAP属性映射 (支持自定义)
+    attributes:
+      password: 'userPassword'  # 密码属性
+      username: 'uid'  # 用户名属性，可选: 'uid' 或 'cn'
+      lockout_time: 'pwdAccountLockedTime'  # 锁定时间属性 (ppolicy overlay)
+      account_control: null  # OpenLDAP无统一的账号控制属性
+      member_of: 'memberOf'  # 组成员属性 (需要memberof overlay)
+      object_class: 'inetOrgPerson'  # 对象类
+    
+    # 密码hash算法
+    password_hash: 'ssha'  # 选项: 'ssha' (推荐), 'sha', 'md5', 'crypt', 'plain' (仅测试)
+    
+    # ppolicy (Password Policy Overlay) 配置
+    ppolicy:
+      enabled: true  # 是否启用ppolicy检查
+      policy_dn: ''  # 默认策略DN (可选)，如：cn=default,ou=policies,dc=company,dc=com
+      detect_user_policy: true  # 是否检测用户特定策略（通过 pwdPolicySubentry 属性）
+    
+    # memberOf overlay配置
+    memberof_overlay: true  # 是否启用了memberof overlay (如果为false则使用反向查询组)
+    
+    # 账号状态判断配置（OpenLDAP特定）
+    # OpenLDAP没有统一的账号状态码，使用属性检查方式判断：
+    # - 账号启用：enabled 列表为空或不检查（无统一启用标志）
+    # - 账号禁用：检查特定属性（如 nsAccountLock: true，shadowExpire，或自定义属性）
+    # - 账号锁定：检查 pwdAccountLockedTime 属性是否存在（ppolicy overlay）
+    # - 密码过期：password_expired 列表为空或不检查（依赖ppolicy）
+    account_status:
+      # =======================================================================
+      # 锁定检测配置（按优先级尝试）
+      # 支持 ppolicy、389ds、自定义属性等多种机制
+      # =======================================================================
+      lock_detection:
+        # 方式1: ppolicy overlay - 检查 pwdAccountLockedTime 属性是否存在
+        - attribute: 'pwdAccountLockedTime'
+          mechanism: 'ppolicy'           # 机制名称: ppolicy, 389ds, custom
+          check: 'exists'                # exists=属性存在即锁定, value=检查值
+          unlock_action: 'delete'        # delete=删除属性, set_value=设置值
+          # unlock_value: ''             # 当 unlock_action=set_value 时使用的值（可选）
+        
+        # 方式2: 389 DS/FreeIPA - 检查 nsAccountLock 属性值
+        # - attribute: 'nsAccountLock'
+        #   mechanism: '389ds'
+        #   check: 'value'
+        #   locked_values: ['true', 'TRUE', '1']
+        #   unlock_action: 'set_value'
+        #   unlock_value: 'false'
+        
+        # 方式3: 自定义属性
+        # - attribute: 'accountLocked'
+        #   mechanism: 'custom'
+        #   check: 'value'
+        #   locked_values: ['yes', '1', 'locked']
+        #   unlock_action: 'set_value'
+        #   unlock_value: 'no'
+      
+      # =======================================================================
+      # 禁用检测配置（按优先级尝试）
+      # 支持多种禁用检测机制
+      # =======================================================================
+      disable_detection:
+        # 方式1: 389 DS/FreeIPA - 检查 nsAccountLock 属性值
+        - attribute: 'nsAccountLock'
+          mechanism: '389ds'             # 机制名称
+          check: 'value'                 # 检查属性值
+          disabled_values: ['true', 'TRUE', '1']
+        
+        # 方式2: shadow 属性 - 检查账号是否过期
+        # - attribute: 'shadowExpire'
+        #   mechanism: 'shadow'
+        #   check: 'expire_date'          # 检查日期是否已过期（天数从1970-01-01起）
+        
+        # 方式3: 自定义属性
+        # - attribute: 'accountStatus'
+        #   mechanism: 'custom'
+        #   check: 'value'
+        #   disabled_values: ['disabled', 'inactive', 'suspended']
+      
+      # =======================================================================
+      # 密码属性配置
+      # =======================================================================
+      password:
+        # 密码属性名（按优先级尝试）
+        attributes:
+          - 'userPassword'
+        # 首次设置密码时自动添加属性（如果属性不存在）
+        auto_add: true
+        # 哈希算法配置
+        hash_algorithm: 'ssha'
+        # 支持的算法: ssha, sha, md5, crypt, argon2, bcrypt, plain
+      
+      # =======================================================================
+      # 自动检测机制
+      # =======================================================================
+      # 是否启用自动检测机制（根据用户属性自动判断使用哪种检测方式）
+      auto_detect_mechanism: true
+      
+      # =======================================================================
+      # 向后兼容配置（旧版本配置格式，优先级低于上述新配置）
+      # =======================================================================
+      enabled: []  # OpenLDAP无统一的启用标志，留空表示不检查
+      disabled: ['true', 'TRUE', '1', 'disabled']  # 禁用标志值列表（检查 disabled_attribute 的值）
+      locked: ['exists']  # 锁定标志：'exists' 表示属性存在即锁定（针对 pwdAccountLockedTime）
+      password_expired: []  # OpenLDAP通常依赖ppolicy的pwdExpireWarning，留空表示不检查
+      
+      # 属性配置（向后兼容）
+      disabled_attribute: 'nsAccountLock'  # 禁用标志属性名（389 DS/FreeIPA: nsAccountLock，自定义: accountStatus）
+      locked_attribute: 'pwdAccountLockedTime'  # 锁定属性名（ppolicy overlay）
+  
+  # --------------------------------------------------------------------------
+  # 服务账号安全配置 (AD和OpenLDAP通用)
+  # --------------------------------------------------------------------------
+  security:
+    # 启动时验证服务账号权限
+    validate_permissions_on_startup: true
+    
+    # 验证危险组配置模式
+    validation_mode: 'warning'  # 选项: 'strict' (强制，验证失败终止启动), 'warning' (警告，允许继续), 'disabled' (禁用验证)
+    
+    # 危险组配置 (如果服务账号属于这些组，将拒绝启动或警告)
+    # 支持三种匹配方式：
+    # 1. 字符串: 直接匹配组名
+    # 2. {name: '组名'}: 匹配组名
+    # 3. {dn: '完整DN'}: 精确匹配DN
+    # 4. {pattern: '正则表达式'}: DN模式匹配
+    dangerous_groups:
+      # AD示例
+      - name: 'Domain Admins'
+        dn: 'CN=Domain Admins,CN=Users,DC=company,DC=com'  # 可选，更精确
+      - name: 'Enterprise Admins'
+      - name: 'Schema Admins'
+      - 'Administrators'  # 简写形式
+      - pattern: 'CN=.*Admin.*,CN=Users,.*'  # 正则匹配
+      # OpenLDAP示例 (当ldap.type=openldap时使用)
+      - name: 'admin'
+        dn: 'cn=admin,dc=company,dc=com'
+      - pattern: 'cn=admin,dc=company,dc=com'
+      - pattern: 'cn=admin,ou=.*,dc=company,dc=com'
+      - 'wheel'
+      - 'root'
+    
+    # 系统级管理员账号配置 (特殊处理无法通过常规LDAP查询验证的系统账号)
+    # 适用场景: OpenLDAP的cn=admin、AD的内置Administrator等
+    system_admins:
+      # 完整匹配模式 (DN或用户名精确匹配)
+      exact_matches:
+        - 'cn=admin,dc=companym'  # OpenLDAP默认管理员
+        - 'cn=Manager,dc=companym'  # 其他常见管理员
+        - 'Administrator'  # AD内置管理员
+      
+      # 正则表达式模式 (用于DN模式匹配)
+      patterns:
+        - '^cn=admin,dc=.*'  # 匹配任何以cn=admin开头的根管理员
+        - '^cn=Manager,dc=.*'
+        - '^uid=root,.*'
+
+    # 是否强制要求服务账号属于推荐组
+    require_recommended_group: false  # false=仅警告，true=强制要求
+
+    # 推荐组配置 (可选，建议服务账号属于这些组)
+    recommended_groups:
+      # AD示例
+      - name: 'Password Reset Operators'
+        dn: 'CN=Password Reset Operators,OU=ServiceAccounts,DC=company,DC=com'
+      
+      # OpenLDAP示例
+      - name: 'password-operators'
+        dn: 'cn=password-operators,ou=groups,dc=company,dc=com'
+
+# ----------------------------------------------------------------------------
+# 密码策略配置
+# ----------------------------------------------------------------------------
+password_policy:
+  min_length: 8  # 密码最小长度
+  max_length: 30  # 密码最大长度
+  require_uppercase: true  # 是否必须包含大写字母
+  require_lowercase: true  # 是否必须包含小写字母
+  require_digits: true  # 是否必须包含数字
+  require_special_chars: true  # 是否必须包含特殊字符
+  forbidden_patterns:  # 禁止使用的密码模式列表（精确匹配，不区分大小写）
+    - '1qaz@WSX'  # 键盘序列密码
+    - '1234@Abc'  # 简单组合密码
+    - '123456'  # 纯数字序列
+    - 'admin'  # 常见单词
+    - 'password'  # 常见单词
+  forbidden_password_file: ''  # 外部弱密码字典文件路径（可选），如：conf/weak_passwords.txt，每行一个密码
+  forbidden_regex:  # 禁止使用的密码正则表达式规则列表
+    - (\d)\1{3,}  # 禁止连续重复数字（如：1111, 2222）
+    - ^(\w)\1+$  # 禁止单一字符重复（如：aaaa, bbbb）
+  check_history: false  # 是否检查密码历史（需要额外存储支持，暂未实现）
+  history_count: 3  # 禁止重用最近N次密码（需check_history=true）
+
+
+# ----------------------------------------------------------------------------
+# 网络配置
+# ----------------------------------------------------------------------------
+network:  
+  # HTTP代理配置（用于OAuth API请求）
+  proxy:
+    enabled: false    # 是否启用代理，生产环境如果需要代理访问外网API则设置为true
+    http_proxy: ''    # HTTP代理地址，如：http://proxy.company.com:3128
+    https_proxy: ''   # HTTPS代理地址，如：http://proxy.company.com:3128
+    no_proxy: ''      # 不使用代理的地址列表，逗号分隔
+    # 代理认证（如果代理需要用户名密码）
+    proxy_username: ''  # 代理用户名（可选）
+    proxy_password: ''  # 代理密码（可选）
+
+# ----------------------------------------------------------------------------
+# 缓存配置
+# ----------------------------------------------------------------------------
+cache:
+  # 缓存后端类型：memory（内存缓存，默认）、database（数据库缓存）、file（文件缓存）
+  backend: 'memory'  # 推荐：单机部署使用memory，多实例负载均衡使用database
+  
+  # Memory Cache配置（backend=memory时生效）
+  memory:
+    location: 'rate-limiting'  # 内存缓存命名空间
+    max_entries: 1000  # 最大缓存条目数
+    cull_frequency: 3  # 缓存淘汰频率（达到max_entries时删除1/cull_frequency的条目）
+  
+  # Database Cache配置（backend=database时生效）
+  database:
+    table_name: 'rate_limit_cache'  # 缓存表名
+    # 初始化命令：python manage.py createcachetable
+  
+  # File-based Cache配置（backend=file时生效）
+  file:
+    location: 'cache_files'  # 缓存文件存储目录（相对于项目根目录）
+    max_entries: 1000  # 最大缓存条目数
+    cull_frequency: 3  # 缓存淘汰频率
+
+# ----------------------------------------------------------------------------
+# 安全配置
+# ----------------------------------------------------------------------------
+security:
+  # 防暴力破解限流配置
+  rate_limiting:
+    enabled: true  # 是否启用限流功能（false则完全禁用，仅用于测试环境）
+    
+    # 默认限流参数（各场景可独立覆盖）
+    default_max_attempts: 5      # 默认最大尝试次数
+    default_window_seconds: 300  # 默认时间窗口（秒）
+    
+    # IP限流配置（防止单IP大规模暴力破解）
+    ip:
+      max_attempts: 10      # 10分钟内最多10次尝试
+      window_seconds: 600   # 时间窗口：10分钟
+      
+    # 用户名限流配置（防止针对特定账号暴力破解）
+    user:
+      max_attempts: 5       # 5分钟内最多5次尝试
+      window_seconds: 300   # 时间窗口：5分钟
+      
+    # OAuth限流配置（防止OAuth code遍历攻击）
+    oauth:
+      max_attempts: 3       # 5分钟内最多3次OAuth认证
+      window_seconds: 300   # 时间窗口：5分钟
+  
+  # Session安全配置
+  session:
+    regenerate_on_auth: true   # OAuth认证后是否重新生成Session ID（防会话固定攻击）
+    strict_ip_check: false     # 是否严格检查IP变化（移动端网络切换会误判，不建议开启）
+    check_user_agent: true     # 是否检查User-Agent变化
+    max_lifetime: 300          # Session最大生命周期（秒），默认5分钟
+    absolute_timeout: 1800     # 绝对超时时间（秒），默认30分钟
+  
+  # OAuth Code安全配置
+  oauth_code:
+    prevent_replay: true       # 是否防止code重放攻击
+    cache_used_codes: true     # 是否缓存已使用的code
+    code_ttl: 600              # 已使用code缓存时间（秒）
+
+# ----------------------------------------------------------------------------
+# 短信验证码配置
+# ----------------------------------------------------------------------------
+sms:
+  # 是否启用SMS验证码功能（启用后会在密码重置页面显示短信验证选项）
+  enabled: false  # 默认关闭，生产环境配置好后可开启
+  
+  # SMS服务提供商：mock（测试）、aliyun（阿里云）、tencent（腾讯云）、huawei（华为云）
+  provider: 'mock'
+  
+  # 验证码配置
+  code:
+    length: 6  # 验证码长度
+    code_type: 'numeric'  # 验证码类型：numeric（纯数字）、alphanumeric（字母数字）
+    expire_seconds: 300  # 验证码有效期（秒），默认5分钟
+  
+  # 手机号数据源配置（支持多源配置，按顺序查找）
+  # 建议以LDAP为主数据源，OAuth为辅数据源，确保手机号的准确性和及时性
+  mobile_mapping:
+    sources:
+      - type: 'ldap'
+        field: 'mobile'  # LDAP属性名（AD常用：mobile, telephoneNumber; OpenLDAP常用：mobile）
+      - type: 'oauth'  # 数据源类型：oauth（OAuth用户信息）、ldap（LDAP查询）
+        field: 'mobile'  # 手机号字段名（支持点号路径如 contact.mobile）
+
+  # 短信发送限流配置（防刷）
+  rate_limiting:
+    same_mobile_interval: 60      # 同一手机号发送间隔（秒）
+    same_mobile_daily_limit: 10   # 同一手机号每日最多发送次数
+    verify_max_attempts: 5        # 同一验证码最多验证次数
+  
+  # Mock提供商配置（用于开发测试）
+  mock:
+    auto_pass: true     # 是否自动通过验证（测试用）
+    simulate_delay: 0   # 模拟发送延迟（秒）
+    fixed_code: null    # 固定验证码（如'123456'），null为随机生成
+    fail_rate: 0.0      # 模拟失败率（0.0-1.0）
+  
+  # 阿里云SMS配置
+  aliyun:
+    access_key_id: ''         # AccessKey ID
+    access_key_secret: ''     # AccessKey Secret
+    sign_name: ''             # 短信签名
+    template_code: ''         # 模板CODE
+    region_id: 'cn-hangzhou'  # 地域ID
+  
+  # 腾讯云SMS配置
+  tencent:
+    secret_id: ''           # SecretId
+    secret_key: ''          # SecretKey
+    sdk_app_id: ''          # 短信应用ID
+    sign_name: ''           # 短信签名内容
+    template_id: ''         # 模板ID
+    region: 'ap-guangzhou'  # 地域
+  
+  # 华为云SMS配置
+  huawei:
+    app_key: ''       # APP Key
+    app_secret: ''    # APP Secret
+    sender: ''        # 短信通道号
+    template_id: ''   # 模板ID
+    signature: ''     # 短信签名（可选）
+    api_url: 'https://smsapi.cn-north-4.myhuaweicloud.com:443'  # API地址
+
+# ----------------------------------------------------------------------------
+# 日志配置
+# ----------------------------------------------------------------------------
+logging:
+  level: 'INFO'  # 日志级别：DEBUG, INFO, WARNING, ERROR, CRITICAL
+  format: 'verbose'  # 日志格式：verbose=详细格式，simple=简单格式
+  file_path: '${LOG_PATH}'  # 日志文件存储路径
+  max_bytes: 10485760  # 单个日志文件最大大小（字节），10MB
+  backup_count: 5  # 保留的日志文件备份数量

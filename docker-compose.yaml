@@ -1,0 +1,56 @@
+---
+x-common: &common
+  build:
+    context: .
+    dockerfile: Dockerfile
+  image: django-app:latest
+  env_file: 
+    - ${ENV_FILE:-.env}
+  environment:
+    - "PATH=/opt/project:${PATH}"
+
+x-logging: &logging
+  logging:
+    driver: json-file
+    options:
+      max-size: "30m"
+      max-file: "10"
+      compress: "true"
+
+services:
+  password-self-service:
+    <<: [*common, *logging]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://password-self-service:${DJANGO_PORT}/healthz || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    container_name: password-self-service
+    hostname: password-self-service
+    volumes:
+      - ./:/opt/project
+     # 走容器内部网络，可不需要暴露端口到宿主机
+     # 如果需要在宿主机访问，可以取消下面的注释，并确保不要使用0.0.0.0
+#    ports:
+#      - 127.0.0.1:9000:${DJANGO_PORT}     #
+
+  password-self-openresty:
+    image: openresty/openresty:1.25.3.1-0-jammy
+    container_name: password-self-openresty
+    hostname: password-self-openresty
+    restart: unless-stopped
+    volumes:
+      - ./run/nginx/nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf:ro
+      - ./run/nginx/conf.d:/opt/project/run/nginx/conf.d:ro
+      - ./run/nginx/certs:/opt/project/run/nginx/certs:ro
+      - ./log/nginx:/opt/project/log/nginx
+      - ./static:/opt/project/static
+      - ./media:/opt/project/media
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    ports:
+      - ${HOST_IP}:80:${NGINX_HTTP_PORT}
+      - ${HOST_IP}:443:${NGINX_HTTPS_PORT}
+    depends_on:
+      password-self-service:
+        condition: service_healthy

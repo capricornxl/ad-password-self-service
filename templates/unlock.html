@@ -3,7 +3,7 @@
 {% block paneltitle %}解锁账号{% endblock %}
 {% block middleblock %}
 <div class="layui-row">
-    <form class="layui-form  layui-form-pane" name="unlockAccount" method="post" action="" autocomplete="off">{% csrf_token %}
+    <form class="layui-form  layui-form-pane" id="unlockAccountForm" name="unlockAccount" autocomplete="off">{% csrf_token %}
         <div class="layui-form-item">
             <label class="layui-form-label">账号</label>
             <div class="layui-input-block">
@@ -11,8 +11,34 @@
                 <input type="hidden" id="code" name="code" readonly value="{{ code }}">
             </div>
         </div>
+
+        {% if enable_sms_verification %}
+        <div class="layui-form-item" id="sms-verification-block">
+            <label class="layui-form-label">二次验证</label>
+            <div class="layui-input-inline">
+                <input type="text" name="sms_code" id="sms_code" lay-verify="smsRequired" lay-verType="tips" placeholder="请输入短信验证码" autocomplete="off" class="layui-input">
+                <input type="hidden" id="sms_mobile" name="sms_mobile">
+            </div>
+            <div class="layui-form-mid" style="padding: 0!important;">
+                <button type="button" class="layui-btn layui-btn-primary" id="sendSmsBtn">
+                    获取验证码
+                </button>
+            </div>
+        </div>
+        <div class="layui-form-item" id="sms-tip" style="display:none;">
+            <div class="layui-form-mid layui-word-aux" style="padding-left: 110px;">
+                验证码已发送至 <span id="sms_mobile_display"></span>
+            </div>
+        </div>
+        <div class="layui-form-item" id="sms-verified-tip" style="display:none;">
+            <div class="layui-form-mid layui-word-aux" style="padding-left: 110px; color: #5FB878;">
+                <i class="layui-icon layui-icon-ok-circle"></i> 短信验证已通过
+            </div>
+        </div>
+        {% endif %}
+        
         <div class="layui-form-item">
-            <button type="submit" lay-submit="" class="layui-btn layui-btn-normal layui-btn-fluid">立即提交</button>
+            <button type="submit" lay-submit lay-filter="unlockAccount" class="layui-btn layui-btn-normal layui-btn-fluid">立即提交</button>
         </div>
         <div class="layui-form-item a-middle-text">
             <span class="layui-breadcrumb">
@@ -25,7 +51,175 @@
 {% endblock %}
 {% block middleblockfoot %}
 <blockquote class="layui-elem-quote layui-quote-nm">
-    新密码8至30位长度，要求包含大小写字母及数字。
-    <p>会话有效期5分钟</p>
+    <strong>账号解锁说明：</strong>解锁仅针对因密码输错次数过多导致的锁定，不会修改密码。
+    <p><i class="layui-icon layui-icon-tips"></i> 会话有效期5分钟，如需重置密码请点击上方"重置密码"按钮</p>
 </blockquote>
+{% endblock %}
+{% block footerjs %}
+<script>
+layui.use(['form', 'app'], function() {
+    var form = layui.form;
+    var app = layui.app;
+    var $ = layui.jquery;
+    
+    // 初始化应用
+    app.init();
+    
+    // 页面加载时检查 OAuth 认证状态
+    var username = '{{ username|escapejs }}';
+    var code = '{{ code|escapejs }}';
+    
+    if (username && code) {
+        app.App.request('/api/auth/status', {
+            username: username,
+            code: code
+        }).done(function(res) {
+            if (!res.success) {
+                app.App.showError('认证已过期，请重新授权', function() {
+                    window.location.href = '/auth';
+                });
+            }
+        });
+    }
+    
+    // 短信验证状态
+    var smsVerified = false;
+    
+    // 防重复提交状态
+    var isSubmitting = false;
+    
+    {% if enable_sms_verification %}
+    // 添加短信验证码自定义验证规则
+    form.verify({
+        smsRequired: function(value) {
+            // 只有在短信验证块可见时才验证
+            if ($('#sms-verification-block').is(':visible') && !value) {
+                return '请输入短信验证码';
+            }
+        }
+    });
+    
+    // 发送短信验证码
+    $('#sendSmsBtn').on('click', function() {
+        var username = $('input[name="username"]').val();
+        var code = $('#code').val();
+        
+        if (!username) {
+            app.App.showWarning('请输入用户名');
+            return;
+        }
+        
+        app.SMSUtil.sendCode(username, code, this, function(error, res) {
+            if (!error && res.success) {
+                // 发送成功后的处理已在 SMSUtil.sendCode 中完成
+            }
+        });
+    });
+    {% endif %}
+    
+    // 表单提交
+    form.on('submit(unlockAccount)', function(data) {
+        // 深拷贝表单数据，避免异步回调时数据丢失
+        var formDataCopy = JSON.parse(JSON.stringify(data.field));
+        
+        // 防重复提交检查
+        if (isSubmitting) {
+            app.App.showWarning('正在处理中，请稍候...');
+            return false;
+        }
+        
+        {% if enable_sms_verification %}
+        // 如果启用了短信验证且未验证通过
+        if (!smsVerified && $('#sms-verification-block').is(':visible')) {
+            var mobile = $('#sms_mobile').val();
+            if (!mobile) {
+                app.App.showWarning('请先获取验证码');
+                return false;
+            }
+            
+            var smsCode = $('#sms_code').val();
+            
+            // 验证短信验证码时的防重复
+            if (isSubmitting) {
+                return false;
+            }
+            isSubmitting = true;
+            
+            // 先验证短信验证码
+            var loadIndex = app.App.showLoading();
+            app.SMSUtil.verifyCode(
+                $('input[name="username"]').val(),
+                mobile,
+                smsCode,
+                function(success, res) {
+                    app.App.hideLoading(loadIndex);
+                    isSubmitting = false;
+                    
+                    if (success) {
+                        smsVerified = true;
+                        $('#sms-verification-block').hide();
+                        $('#sms-verified-tip').show();
+                        // 验证成功后继续提交表单（使用深拷贝的数据）
+                        submitUnlockAccount(formDataCopy);
+                    }
+                }
+            );
+            return false;
+        }
+        {% endif %}
+        
+        // 直接提交表单（使用深拷贝的数据）
+        submitUnlockAccount(formDataCopy);
+        return false;
+    });
+    
+    // 提交解锁账号请求
+    function submitUnlockAccount(formData) {
+        if (isSubmitting) {
+            app.App.showWarning('正在处理中，请稍候...');
+            return;
+        }
+        
+        isSubmitting = true;
+        var loadIndex = app.App.showLoading();
+        var $submitBtn = $('button[lay-filter="unlockAccount"]');
+        
+        // 禁用提交按钮
+        $submitBtn.prop('disabled', true).addClass('layui-btn-disabled');
+        
+        {% if enable_sms_verification %}
+        // 如果有短信验证码，添加到表单数据
+        if ($('#sms_code').val()) {
+            formData.sms_code = $('#sms_code').val();
+        }
+        if ($('#sms_mobile').val()) {
+            formData.sms_mobile = $('#sms_mobile').val();
+        }
+        {% endif %}
+        
+        app.App.request('/api/account/unlock', formData)
+            .done(function(res) {
+                if (res.success) {
+                    app.App.showSuccess(res.message, function() {
+                        // 解锁成功后跳转到首页
+                        window.location.href = '/';
+                    });
+                } else {
+                    app.App.showError(res.message, res.error_code);
+                    // 恢复按钮状态（失败时允许重试）
+                    isSubmitting = false;
+                    $submitBtn.prop('disabled', false).removeClass('layui-btn-disabled');
+                }
+            })
+            .fail(function(xhr, status, error) {
+                // 错误已在 App.request 中统一处理
+                isSubmitting = false;
+                $submitBtn.prop('disabled', false).removeClass('layui-btn-disabled');
+            })
+            .always(function() {
+                app.App.hideLoading(loadIndex);
+            });
+    }
+});
+</script>
 {% endblock %}
